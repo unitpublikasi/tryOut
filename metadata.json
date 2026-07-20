@@ -1,0 +1,6 @@
+{
+  "name": "Try Out Sekolah",
+  "description": "Platform ujian Try Out online sekolah berstandar nasional dengan analitik real-time, manajemen bank soal, monitoring guru, dan ujian interaktif untuk siswa.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
