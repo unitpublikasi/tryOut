@@ -140,6 +140,13 @@ export default function App() {
     saveToLocalStorage('to_tryouts', updated);
   };
 
+  const handleUpdateTryout = (updatedTryout: Tryout) => {
+    const updated = tryouts.map((t) => (t.id === updatedTryout.id ? updatedTryout : t));
+    setTryouts(updated);
+    saveToLocalStorage('to_tryouts', updated);
+    triggerToast(`Jadwal Try Out "${updatedTryout.title}" berhasil diperbarui!`, 'success');
+  };
+
   const handleDeleteTryout = (id: string) => {
     const updated = tryouts.filter((t) => t.id !== id);
     setTryouts(updated);
@@ -392,6 +399,7 @@ export default function App() {
                     onStartTryout={setActiveTryout}
                     onViewResult={setActiveResultSubmission}
                     onAddTryout={handleAddTryout}
+                    onUpdateTryout={handleUpdateTryout}
                     onDeleteTryout={handleDeleteTryout}
                     onTogglePublish={handleTogglePublish}
                     onToast={triggerToast}
@@ -419,6 +427,7 @@ export default function App() {
                     onStartTryout={setActiveTryout}
                     onViewResult={setActiveResultSubmission}
                     onAddTryout={handleAddTryout}
+                    onUpdateTryout={handleUpdateTryout}
                     onDeleteTryout={handleDeleteTryout}
                     onTogglePublish={handleTogglePublish}
                     onToast={triggerToast}
@@ -442,6 +451,7 @@ export default function App() {
                       onStartTryout={setActiveTryout}
                       onViewResult={setActiveResultSubmission}
                       onAddTryout={handleAddTryout}
+                      onUpdateTryout={handleUpdateTryout}
                       onDeleteTryout={handleDeleteTryout}
                       onTogglePublish={handleTogglePublish}
                       onToast={triggerToast}

@@ -18,7 +18,12 @@ import {
   Trash2,
   Calendar,
   X,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Edit2,
+  Search,
+  Shuffle,
+  Filter,
+  Sparkles
 } from 'lucide-react';
 import { User, Tryout, Submission, Question } from '../types';
 
@@ -30,6 +35,7 @@ interface DashboardProps {
   onStartTryout: (tryout: Tryout) => void;
   onViewResult: (submission: Submission) => void;
   onAddTryout: (newTryout: Tryout) => void;
+  onUpdateTryout: (updatedTryout: Tryout) => void;
   onDeleteTryout: (id: string) => void;
   onTogglePublish: (id: string) => void;
   onToast: (msg: string, type: 'success' | 'error' | 'info') => void;
@@ -43,6 +49,7 @@ export default function Dashboard({
   onStartTryout,
   onViewResult,
   onAddTryout,
+  onUpdateTryout,
   onDeleteTryout,
   onTogglePublish,
   onToast,
@@ -50,13 +57,22 @@ export default function Dashboard({
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'tryouts' | 'activities'>('tryouts');
 
-  // Form states for scheduling a new Tryout
+  // Form states for scheduling/editing a Tryout
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
   const [duration, setDuration] = useState<number>(30);
   const [passingGrade, setPassingGrade] = useState<number>(75);
   const [category, setCategory] = useState('Matematika');
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
+
+  // Editing tryout pointer (null if creating, Tryout object if editing)
+  const [editingTryout, setEditingTryout] = useState<Tryout | null>(null);
+
+  // Question Import / Selection helper filters in Modal
+  const [modalSearchTerm, setModalSearchTerm] = useState('');
+  const [modalCategoryFilter, setModalCategoryFilter] = useState('Matematika');
+  const [modalDifficultyFilter, setModalDifficultyFilter] = useState<'all' | 'easy' | 'medium' | 'hard'>('all');
+  const [randomCount, setRandomCount] = useState<number>(5);
 
   // Filters
   const studentSubmissions = submissions.filter((s) => s.studentId === user.id);
@@ -65,6 +81,84 @@ export default function Dashboard({
     setSelectedQuestionIds((prev) =>
       prev.includes(qId) ? prev.filter((id) => id !== qId) : [...prev, qId]
     );
+  };
+
+  const handleOpenCreateModal = () => {
+    setEditingTryout(null);
+    setTitle('');
+    setDesc('');
+    setDuration(30);
+    setPassingGrade(75);
+    setCategory('Matematika');
+    setSelectedQuestionIds([]);
+    setModalCategoryFilter('Matematika');
+    setModalSearchTerm('');
+    setModalDifficultyFilter('all');
+    setShowCreateModal(true);
+  };
+
+  const handleOpenEditModal = (t: Tryout) => {
+    setEditingTryout(t);
+    setTitle(t.title);
+    setDesc(t.description);
+    setDuration(t.durationMinutes);
+    setPassingGrade(t.passingGrade);
+    setCategory(t.category);
+    setSelectedQuestionIds(t.questions.map((q) => q.id));
+    setModalCategoryFilter(t.category);
+    setModalSearchTerm('');
+    setModalDifficultyFilter('all');
+    setShowCreateModal(true);
+  };
+
+  const handleCategoryChange = (newCategory: string) => {
+    setCategory(newCategory);
+    setModalCategoryFilter(newCategory);
+  };
+
+  // Filtered available questions list for select in modal
+  const filteredModalQuestions = questions.filter((q) => {
+    const matchesSearch = q.text.toLowerCase().includes(modalSearchTerm.toLowerCase());
+    const matchesCategory = modalCategoryFilter === 'all' || q.category === modalCategoryFilter;
+    const matchesDifficulty = modalDifficultyFilter === 'all' || q.difficulty === modalDifficultyFilter;
+    return matchesSearch && matchesCategory && matchesDifficulty;
+  });
+
+  // Bulk operation actions
+  const handleSelectAllFiltered = () => {
+    const filteredIds = filteredModalQuestions.map((q) => q.id);
+    setSelectedQuestionIds((prev) => {
+      const union = new Set([...prev, ...filteredIds]);
+      return Array.from(union);
+    });
+    onToast(`Berhasil memilih ${filteredModalQuestions.length} butir soal terfilter!`, 'success');
+  };
+
+  const handleDeselectAllFiltered = () => {
+    const filteredIds = filteredModalQuestions.map((q) => q.id);
+    setSelectedQuestionIds((prev) => prev.filter((id) => !filteredIds.includes(id)));
+    onToast('Batal memilih soal-soal terfilter.', 'info');
+  };
+
+  const handleSelectRandom = () => {
+    if (filteredModalQuestions.length === 0) {
+      onToast('Tidak ada soal dalam daftar terfilter untuk dipilih secara acak.', 'error');
+      return;
+    }
+    const countToPick = Math.min(randomCount, filteredModalQuestions.length);
+    if (countToPick <= 0) {
+      onToast('Masukkan jumlah acak yang valid!', 'error');
+      return;
+    }
+
+    const shuffled = [...filteredModalQuestions].sort(() => 0.5 - Math.random());
+    const pickedIds = shuffled.slice(0, countToPick).map((q) => q.id);
+
+    setSelectedQuestionIds((prev) => {
+      const union = new Set([...prev, ...pickedIds]);
+      return Array.from(union);
+    });
+    onToast(`Berhasil memilih ${countToPick} butir soal secara acak!`, 'success');
   };
 
   const handleScheduleTryout = (e: React.FormEvent) => {
@@ -76,23 +170,39 @@ export default function Dashboard({
 
     const compiledQuestions = questions.filter((q) => selectedQuestionIds.includes(q.id));
 
-    const newTryout: Tryout = {
-      id: `to-${Date.now()}`,
-      title,
-      description: desc || 'Ujian evaluasi Try Out sekolah berkala.',
-      durationMinutes: Number(duration),
-      passingGrade: Number(passingGrade),
-      category,
-      questions: compiledQuestions,
-      startDate: new Date().toISOString(),
-      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days validity
-      createdBy: user.id,
-      isPublished: true,
-    };
+    if (editingTryout) {
+      // UPDATE Tryout CRUD
+      const updatedTryout: Tryout = {
+        ...editingTryout,
+        title: title.trim(),
+        description: desc || 'Ujian evaluasi Try Out sekolah berkala.',
+        durationMinutes: Number(duration),
+        passingGrade: Number(passingGrade),
+        category,
+        questions: compiledQuestions,
+      };
+      onUpdateTryout(updatedTryout);
+      setShowCreateModal(false);
+    } else {
+      // CREATE Tryout
+      const newTryout: Tryout = {
+        id: `to-${Date.now()}`,
+        title: title.trim(),
+        description: desc || 'Ujian evaluasi Try Out sekolah berkala.',
+        durationMinutes: Number(duration),
+        passingGrade: Number(passingGrade),
+        category,
+        questions: compiledQuestions,
+        startDate: new Date().toISOString(),
+        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days validity
+        createdBy: user.id,
+        isPublished: true,
+      };
 
-    onAddTryout(newTryout);
-    setShowCreateModal(false);
-    onToast(`Ujian Try Out "${title}" berhasil dijadwalkan dan dipublikasi!`, 'success');
+      onAddTryout(newTryout);
+      setShowCreateModal(false);
+      onToast(`Ujian Try Out "${title}" berhasil dijadwalkan dan dipublikasi!`, 'success');
+    }
 
     // Reset Form
     setTitle('');
@@ -100,6 +210,7 @@ export default function Dashboard({
     setDuration(30);
     setPassingGrade(75);
     setSelectedQuestionIds([]);
+    setEditingTryout(null);
   };
 
   return (
@@ -376,7 +487,7 @@ export default function Dashboard({
                 <span className="font-bold text-xs text-slate-400 uppercase tracking-wider font-mono">Daftar Jadwal Penyelenggaraan</span>
                 <button
                   id="open-schedule-modal-btn"
-                  onClick={() => setShowCreateModal(true)}
+                  onClick={handleOpenCreateModal}
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center gap-1 shadow-md shadow-blue-500/10"
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -388,7 +499,7 @@ export default function Dashboard({
                 {tryouts.map((t) => (
                   <div
                     key={t.id}
-                    className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col justify-between hover:shadow-md"
+                    className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col justify-between hover:shadow-md transition-all"
                   >
                     <div>
                       <div className="flex justify-between items-start mb-2.5">
@@ -400,7 +511,7 @@ export default function Dashboard({
                         <button
                           id={`toggle-publish-btn-${t.id}`}
                           onClick={() => onTogglePublish(t.id)}
-                          className={`px-2.5 py-0.5 text-[9px] font-bold rounded uppercase ${
+                          className={`px-2.5 py-0.5 text-[9px] font-bold rounded uppercase transition-all ${
                             t.isPublished
                               ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20'
                               : 'bg-slate-100 text-slate-500'
@@ -421,18 +532,28 @@ export default function Dashboard({
                         <span className="font-bold">KKM: {t.passingGrade}</span>
                       </div>
 
-                      <button
-                        id={`delete-tryout-btn-${t.id}`}
-                        onClick={() => {
-                          if (confirm(`Yakin ingin menghapus jadwal Try Out "${t.title}"?`)) {
-                            onDeleteTryout(t.id);
-                          }
-                        }}
-                        className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/25 transition-all"
-                        title="Delete Tryout Schedule"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          id={`edit-tryout-btn-${t.id}`}
+                          onClick={() => handleOpenEditModal(t)}
+                          className="p-1.5 text-slate-400 hover:text-blue-500 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/25 transition-all"
+                          title="Sunting Jadwal Try Out"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          id={`delete-tryout-btn-${t.id}`}
+                          onClick={() => {
+                            if (confirm(`Yakin ingin menghapus jadwal Try Out "${t.title}"?`)) {
+                              onDeleteTryout(t.id);
+                            }
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/25 transition-all"
+                          title="Delete Tryout Schedule"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -504,7 +625,7 @@ export default function Dashboard({
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-6">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <FolderPlus className="w-5 h-5 text-blue-600" />
-                <span>Buat Jadwal & Distribusi Try Out</span>
+                <span>{editingTryout ? 'Edit Jadwal & Distribusi Try Out' : 'Buat Jadwal & Distribusi Try Out'}</span>
               </h3>
               <button
                 onClick={() => setShowCreateModal(false)}
@@ -572,7 +693,7 @@ export default function Dashboard({
                   <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">Mata Pelajaran</label>
                   <select
                     value={category}
-                    onChange={(e) => setCategory(e.target.value)}
+                    onChange={(e) => handleCategoryChange(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:border-blue-500"
                   >
                     <option value="Matematika">Matematika</option>
@@ -585,37 +706,153 @@ export default function Dashboard({
                 </div>
               </div>
 
-              {/* Selection of Question checkboxes */}
-              <div className="space-y-2.5">
-                <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-1.5">
-                  <span className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase">Pilih Butir Soal Dari Bank Soal</span>
-                  <span className="text-xs font-bold text-blue-600 font-mono">{selectedQuestionIds.length} Terpilih</span>
+              {/* Upgraded Import & Select Section from Question Bank */}
+              <div className="space-y-3.5 bg-slate-50/50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2.5">
+                  <div>
+                    <span className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider font-mono">
+                      Import & Pilih Soal dari Bank Soal
+                    </span>
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
+                      Cari, filter, dan pilih butir-butir soal ujian secara manual atau otomatis.
+                    </p>
+                  </div>
+                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400 font-mono bg-blue-50 dark:bg-blue-950/40 px-2.5 py-1 rounded-md shrink-0 self-start sm:self-auto">
+                    {selectedQuestionIds.length} Soal Terpilih
+                  </span>
                 </div>
 
-                <div className="max-h-[160px] overflow-y-auto space-y-2.5 pr-1 text-xs">
-                  {questions.filter((q) => q.category === category).length > 0 ? (
-                    questions
-                      .filter((q) => q.category === category)
-                      .map((q) => (
+                {/* Filters Row inside modal */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                  {/* Search Term */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Cari teks soal..."
+                      value={modalSearchTerm}
+                      onChange={(e) => setModalSearchTerm(e.target.value)}
+                      className="w-full pl-8 pr-3 py-2 bg-white dark:bg-slate-850 border border-slate-200 dark:border-slate-750 rounded-lg text-xs focus:outline-none focus:border-blue-500"
+                    />
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                  </div>
+
+                  {/* Category Filter */}
+                  <div>
+                    <select
+                      value={modalCategoryFilter}
+                      onChange={(e) => setModalCategoryFilter(e.target.value)}
+                      className="w-full px-2.5 py-2 bg-white dark:bg-slate-850 border border-slate-200 dark:border-slate-750 rounded-lg text-xs focus:outline-none focus:border-blue-500"
+                    >
+                      <option value="all">Semua Mapel</option>
+                      <option value="Matematika">Matematika</option>
+                      <option value="Fisika">Fisika</option>
+                      <option value="Biologi">Biologi</option>
+                      <option value="Kimia">Kimia</option>
+                      <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+                      <option value="Bahasa Inggris">Bahasa Inggris</option>
+                    </select>
+                  </div>
+
+                  {/* Difficulty Filter */}
+                  <div>
+                    <select
+                      value={modalDifficultyFilter}
+                      onChange={(e) => setModalDifficultyFilter(e.target.value as any)}
+                      className="w-full px-2.5 py-2 bg-white dark:bg-slate-850 border border-slate-200 dark:border-slate-750 rounded-lg text-xs focus:outline-none focus:border-blue-500"
+                    >
+                      <option value="all">Semua Kesulitan</option>
+                      <option value="easy">Mudah</option>
+                      <option value="medium">Sedang</option>
+                      <option value="hard">Sukar / Hard</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Bulk Actions Block */}
+                <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-850 p-3 rounded-xl border border-slate-200/50 dark:border-slate-750 text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={handleSelectAllFiltered}
+                      disabled={filteredModalQuestions.length === 0}
+                      className="px-2.5 py-1.5 bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 text-slate-700 dark:text-slate-300 font-semibold rounded-md border border-slate-200 dark:border-slate-700 disabled:opacity-40 transition-all text-[11px]"
+                    >
+                      Pilih Semua ({filteredModalQuestions.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDeselectAllFiltered}
+                      disabled={filteredModalQuestions.length === 0}
+                      className="px-2.5 py-1.5 bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 text-slate-700 dark:text-slate-300 font-semibold rounded-md border border-slate-200 dark:border-slate-700 disabled:opacity-40 transition-all text-[11px]"
+                    >
+                      Kosongkan
+                    </button>
+                  </div>
+
+                  {/* Random Import Section */}
+                  <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800 p-1 rounded-lg border border-slate-200/50 dark:border-slate-700">
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider font-mono px-1.5 shrink-0">
+                      Acak:
+                    </span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={questions.length || 50}
+                      value={randomCount}
+                      onChange={(e) => setRandomCount(Math.max(1, Number(e.target.value)))}
+                      className="w-10 bg-white dark:bg-slate-850 border border-slate-200 dark:border-slate-750 rounded py-0.5 px-1 text-center text-xs font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSelectRandom}
+                      className="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px] uppercase transition-all flex items-center gap-1"
+                    >
+                      <Shuffle className="w-3 h-3" />
+                      <span>Ambil</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Display Area for Filtered Questions list */}
+                <div className="max-h-[180px] overflow-y-auto space-y-2 pr-1 text-xs">
+                  {filteredModalQuestions.length > 0 ? (
+                    filteredModalQuestions.map((q) => {
+                      const isSelected = selectedQuestionIds.includes(q.id);
+                      return (
                         <label
                           key={q.id}
-                          className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 border border-slate-200/50 dark:border-slate-800 rounded-xl cursor-pointer transition-colors"
+                          className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                            isSelected
+                              ? 'bg-blue-50/60 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900/60 shadow-sm'
+                              : 'bg-white dark:bg-slate-850 hover:bg-slate-50 dark:hover:bg-slate-800/50 border-slate-200/60 dark:border-slate-750'
+                          }`}
                         >
                           <input
                             type="checkbox"
-                            checked={selectedQuestionIds.includes(q.id)}
+                            checked={isSelected}
                             onChange={() => handleCheckboxChange(q.id)}
-                            className="w-4.5 h-4.5 mt-0.5 rounded text-blue-600 focus:ring-blue-500"
+                            className="w-4 h-4 mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 shrink-0"
                           />
-                          <div>
-                            <span className="font-semibold text-slate-800 dark:text-slate-200 line-clamp-1">{q.text}</span>
-                            <span className="text-[10px] text-slate-400 mt-0.5 block capitalize">Kesulitan: {q.difficulty}</span>
+                          <div className="min-w-0 flex-1">
+                            <span className="font-semibold text-slate-800 dark:text-slate-200 block text-xs leading-relaxed">
+                              {q.text}
+                            </span>
+                            <div className="flex items-center gap-3 mt-1.5 text-[10px] text-slate-400 font-mono">
+                              <span className="px-1.5 py-0.2 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-md font-sans uppercase text-[8px] font-bold">
+                                {q.category}
+                              </span>
+                              <span>•</span>
+                              <span className="capitalize">Kesulitan: {q.difficulty}</span>
+                              <span>•</span>
+                              <span className="truncate">Opsi: {q.options.join(' | ')}</span>
+                            </div>
                           </div>
                         </label>
-                      ))
+                      );
+                    })
                   ) : (
-                    <div className="text-center py-6 bg-slate-50/50 rounded-2xl text-slate-400 italic text-xs">
-                      Tidak ada butir soal dengan kategori "{category}" di Bank Soal. Silakan tambahkan butir soal baru terlebih dahulu.
+                    <div className="text-center py-8 bg-white dark:bg-slate-850 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl text-slate-400 italic text-xs">
+                      Tidak ada butir soal dalam database yang cocok dengan kriteria filter di atas.
                     </div>
                   )}
                 </div>
@@ -635,7 +872,7 @@ export default function Dashboard({
                   disabled={selectedQuestionIds.length === 0}
                   className="flex-1 py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm transition-all active:scale-95 shadow-lg shadow-blue-500/10"
                 >
-                  Simpan & Rilis Ujian
+                  {editingTryout ? 'Simpan Perubahan' : 'Simpan & Rilis Ujian'}
                 </button>
               </div>
             </form>
