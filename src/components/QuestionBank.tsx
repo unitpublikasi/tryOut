@@ -447,6 +447,54 @@ export default function QuestionBank({
         </div>
       </div>
 
+      {/* Active Filters Row */}
+      {(search || categoryFilter !== 'All' || difficultyFilter !== 'All') && (
+        <div id="active-filters-row" className="flex flex-wrap items-center justify-between gap-3 p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-200/60 dark:border-slate-800 text-xs">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-bold text-slate-500 dark:text-slate-400 font-mono uppercase tracking-wider mr-1">Filter Aktif:</span>
+            {search && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 rounded-xl border border-blue-200/50 font-medium">
+                <span>Kata kunci: "{search}"</span>
+                <button type="button" onClick={() => setSearch('')} className="hover:text-red-500 text-blue-400 flex items-center justify-center">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            {categoryFilter !== 'All' && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 rounded-xl border border-violet-200/50 font-medium">
+                <span>Mapel: {categoryFilter}</span>
+                <button type="button" onClick={() => setCategoryFilter('All')} className="hover:text-red-500 text-violet-400 flex items-center justify-center">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            {difficultyFilter !== 'All' && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 rounded-xl border border-emerald-200/50 font-medium">
+                <span>Kesulitan: {difficultyFilter === 'easy' ? 'Mudah' : difficultyFilter === 'medium' ? 'Sedang' : 'Sukar'}</span>
+                <button type="button" onClick={() => setDifficultyFilter('All')} className="hover:text-red-500 text-emerald-400 flex items-center justify-center">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            <button
+              id="clear-all-filters-btn"
+              type="button"
+              onClick={() => {
+                setSearch('');
+                setCategoryFilter('All');
+                setDifficultyFilter('All');
+              }}
+              className="text-red-600 dark:text-red-400 font-bold hover:underline ml-2"
+            >
+              Hapus Semua
+            </button>
+          </div>
+          <span className="text-slate-500 dark:text-slate-400 font-mono">
+            Ditemukan <strong className="text-slate-800 dark:text-white">{filteredQuestions.length}</strong> butir soal
+          </span>
+        </div>
+      )}
+
       {/* Questions list display */}
       <div id="questions-list-grid" className="space-y-4">
         {filteredQuestions.length > 0 ? (
