@@ -15,6 +15,7 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { Submission, Tryout } from '../types';
+import MathRenderer from './MathRenderer';
 
 interface ResultViewProps {
   submission: Submission;
@@ -142,7 +143,7 @@ export default function ResultView({ submission, tryout, onClose }: ResultViewPr
 
                 {/* Question text */}
                 <h4 className="text-sm md:text-base font-semibold text-slate-800 dark:text-slate-100 leading-relaxed">
-                  {q.text}
+                  <MathRenderer text={q.text} />
                 </h4>
 
                 {/* Optional Question Image Illustration */}
@@ -182,7 +183,7 @@ export default function ResultView({ submission, tryout, onClose }: ResultViewPr
                         <span className={`w-5.5 h-5.5 rounded-md flex items-center justify-center font-bold text-[10px] shrink-0 ${badgeStyle}`}>
                           {String.fromCharCode(65 + oIdx)}
                         </span>
-                        <span className="truncate">{opt}</span>
+                        <span className="truncate whitespace-normal"><MathRenderer text={opt} /></span>
                       </div>
                     );
                   })}
@@ -195,7 +196,7 @@ export default function ResultView({ submission, tryout, onClose }: ResultViewPr
                       <BookMarked className="w-3.5 h-3.5" />
                       <span>Penjelasan & Pembahasan Kunci:</span>
                     </span>
-                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed italic">{q.explanation}</p>
+                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed italic"><MathRenderer text={q.explanation} /></p>
                   </div>
                 )}
               </div>

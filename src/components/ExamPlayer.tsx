@@ -18,6 +18,7 @@ import {
   Expand
 } from 'lucide-react';
 import { Tryout, Submission, Question } from '../types';
+import MathRenderer from './MathRenderer';
 
 interface ExamPlayerProps {
   tryout: Tryout;
@@ -197,7 +198,7 @@ export default function ExamPlayer({
         <div className="flex-1 p-8 overflow-y-auto">
           {/* Question Text */}
           <div id={`question-text-${currentQuestion.id}`} className="text-lg font-medium text-slate-800 dark:text-slate-100 leading-relaxed mb-6">
-            {currentQuestion.text}
+            <MathRenderer text={currentQuestion.text} />
           </div>
 
           {/* Optional Question Image Illustration */}
@@ -236,7 +237,7 @@ export default function ExamPlayer({
                   }`}>
                     {optionLetter}
                   </span>
-                  <span className="pt-1.5 text-sm md:text-base font-medium">{option}</span>
+                  <span className="pt-1.5 text-sm md:text-base font-medium"><MathRenderer text={option} /></span>
                 </button>
               );
             })}

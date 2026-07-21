@@ -15,7 +15,8 @@ import {
   Clock,
   LogOut,
   FolderOpen,
-  Users
+  Users,
+  School
 } from 'lucide-react';
 import { User as UserType } from '../types';
 
@@ -44,6 +45,12 @@ export default function Sidebar({ user, activePage, onNavigate, onLogout }: Side
       id: 'try-out-list',
       label: 'Manajemen Try Out',
       icon: FolderOpen,
+      roles: ['admin', 'guru'],
+    },
+    {
+      id: 'curriculum-manage',
+      label: 'Mata Pelajaran & Tingkat',
+      icon: School,
       roles: ['admin', 'guru'],
     },
     {

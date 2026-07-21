@@ -12,9 +12,11 @@ import {
   MOCK_QUESTIONS,
   MOCK_TRYOUTS,
   MOCK_SUBMISSIONS,
-  DEFAULT_SETTINGS
+  DEFAULT_SETTINGS,
+  MOCK_SUBJECTS,
+  MOCK_SCHOOL_LEVELS
 } from './data';
-import { User, Question, Tryout, Submission, SystemSettings, ToastNotification } from './types';
+import { User, Question, Tryout, Submission, SystemSettings, ToastNotification, Subject, SchoolLevel } from './types';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import LandingPage from './components/LandingPage';
@@ -28,6 +30,7 @@ import ExamPlayer from './components/ExamPlayer';
 import ResultView from './components/ResultView';
 import UserManagement from './components/UserManagement';
 import TryoutManagement from './components/TryoutManagement';
+import SubjectLevelManagement from './components/SubjectLevelManagement';
 
 import { Menu, X, ShieldAlert, Sparkles, Check, AlertCircle } from 'lucide-react';
 
@@ -39,6 +42,8 @@ export default function App() {
   const [tryouts, setTryouts] = useState<Tryout[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [settings, setSettings] = useState<SystemSettings>(DEFAULT_SETTINGS);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [schoolLevels, setSchoolLevels] = useState<SchoolLevel[]>([]);
 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [darkMode, setDarkMode] = useState<boolean>(true); // Default to dark mode for modern high-tech feel
@@ -60,6 +65,8 @@ export default function App() {
     setTryouts(getFromLocalStorage<Tryout[]>('to_tryouts', MOCK_TRYOUTS));
     setSubmissions(getFromLocalStorage<Submission[]>('to_submissions', MOCK_SUBMISSIONS));
     setSettings(getFromLocalStorage<SystemSettings>('to_settings', DEFAULT_SETTINGS));
+    setSubjects(getFromLocalStorage<Subject[]>('to_subjects', MOCK_SUBJECTS));
+    setSchoolLevels(getFromLocalStorage<SchoolLevel[]>('to_school_levels', MOCK_SCHOOL_LEVELS));
     setIsDbInitialized(true);
 
     // Keep active user login persistence
@@ -237,12 +244,50 @@ export default function App() {
     saveToLocalStorage('to_settings', newSettings);
   };
 
+  const handleAddSubject = (newSub: Subject) => {
+    const updated = [...subjects, newSub];
+    setSubjects(updated);
+    saveToLocalStorage('to_subjects', updated);
+  };
+
+  const handleUpdateSubject = (updatedSub: Subject) => {
+    const updated = subjects.map((s) => (s.id === updatedSub.id ? updatedSub : s));
+    setSubjects(updated);
+    saveToLocalStorage('to_subjects', updated);
+  };
+
+  const handleDeleteSubject = (id: string) => {
+    const updated = subjects.filter((s) => s.id !== id);
+    setSubjects(updated);
+    saveToLocalStorage('to_subjects', updated);
+  };
+
+  const handleAddSchoolLevel = (newLvl: SchoolLevel) => {
+    const updated = [...schoolLevels, newLvl];
+    setSchoolLevels(updated);
+    saveToLocalStorage('to_school_levels', updated);
+  };
+
+  const handleUpdateSchoolLevel = (updatedLvl: SchoolLevel) => {
+    const updated = schoolLevels.map((l) => (l.id === updatedLvl.id ? updatedLvl : l));
+    setSchoolLevels(updated);
+    saveToLocalStorage('to_school_levels', updated);
+  };
+
+  const handleDeleteSchoolLevel = (id: string) => {
+    const updated = schoolLevels.filter((l) => l.id !== id);
+    setSchoolLevels(updated);
+    saveToLocalStorage('to_school_levels', updated);
+  };
+
   const handleResetDatabase = () => {
     localStorage.removeItem('to_users');
     localStorage.removeItem('to_questions');
     localStorage.removeItem('to_tryouts');
     localStorage.removeItem('to_submissions');
     localStorage.removeItem('to_settings');
+    localStorage.removeItem('to_subjects');
+    localStorage.removeItem('to_school_levels');
     localStorage.removeItem('to_active_user');
   };
 
@@ -351,6 +396,7 @@ export default function App() {
                           { id: 'dashboard', label: 'Dashboard' },
                           { id: 'bank-soal', label: 'Bank Soal', roles: ['admin', 'guru'] },
                           { id: 'try-out-list', label: 'Manajemen Try Out', roles: ['admin', 'guru'] },
+                          { id: 'curriculum-manage', label: 'Mata Pelajaran & Tingkat', roles: ['admin', 'guru'] },
                           { id: 'laporan', label: 'Laporan & Analitik', roles: ['admin', 'guru'] },
                           { id: 'users-manage', label: 'Manajemen User', roles: ['admin'] },
                           { id: 'profil', label: 'Profil Saya' },
@@ -426,6 +472,7 @@ export default function App() {
                 {currentUser && activePage === 'bank-soal' && (
                   <QuestionBank
                     questions={questions}
+                    subjects={subjects}
                     onAddQuestion={handleAddQuestion}
                     onAddQuestionsBulk={handleAddQuestionsBulk}
                     onDeleteQuestion={handleDeleteQuestion}
@@ -441,6 +488,7 @@ export default function App() {
                     user={currentUser}
                     tryouts={tryouts}
                     questions={questions}
+                    subjects={subjects}
                     onAddTryout={handleAddTryout}
                     onUpdateTryout={handleUpdateTryout}
                     onDeleteTryout={handleDeleteTryout}
@@ -517,6 +565,23 @@ export default function App() {
                     onUpdateUser={handleUpdateUser}
                     onDeleteUser={handleDeleteUser}
                     currentUser={currentUser}
+                    onToast={triggerToast}
+                  />
+                )}
+
+                {/* 8.6. VIEW SUBJECT AND LEVEL MANAGEMENT */}
+                {currentUser && activePage === 'curriculum-manage' && (currentUser.role === 'admin' || currentUser.role === 'guru') && (
+                  <SubjectLevelManagement
+                    subjects={subjects}
+                    schoolLevels={schoolLevels}
+                    onAddSubject={handleAddSubject}
+                    onUpdateSubject={handleUpdateSubject}
+                    onDeleteSubject={handleDeleteSubject}
+                    onAddSchoolLevel={handleAddSchoolLevel}
+                    onUpdateSchoolLevel={handleUpdateSchoolLevel}
+                    onDeleteSchoolLevel={handleDeleteSchoolLevel}
+                    questions={questions}
+                    tryouts={tryouts}
                     onToast={triggerToast}
                   />
                 )}

@@ -22,7 +22,8 @@ import {
   Info,
   FileSpreadsheet
 } from 'lucide-react';
-import { Question } from '../types';
+import { Question, Subject } from '../types';
+import MathRenderer from './MathRenderer';
 
 /// Sample Templates for Import
 const SAMPLE_QUESTIONS_JSON = [
@@ -135,6 +136,7 @@ function parseCSV(text: string): ParsedQuestion[] {
 
 interface QuestionBankProps {
   questions: Question[];
+  subjects: Subject[];
   onAddQuestion: (newQuestion: Question) => void;
   onAddQuestionsBulk: (newQuestions: Question[]) => void;
   onDeleteQuestion: (id: string) => void;
@@ -145,6 +147,7 @@ interface QuestionBankProps {
 
 export default function QuestionBank({
   questions,
+  subjects,
   onAddQuestion,
   onAddQuestionsBulk,
   onDeleteQuestion,
@@ -168,12 +171,19 @@ export default function QuestionBank({
   const [newText, setNewText] = useState('');
   const [newOptions, setNewOptions] = useState<string[]>(['', '', '', '']);
   const [newCorrectAnswer, setNewCorrectAnswer] = useState<number>(0);
-  const [newCategory, setNewCategory] = useState('Matematika');
+  const [newCategory, setNewCategory] = useState('');
   const [newDifficulty, setNewDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [newExplanation, setNewExplanation] = useState('');
   const [newImageUrl, setNewImageUrl] = useState('');
 
-  const categories = ['All', ...Array.from(new Set(questions.map((q) => q.category)))];
+  // Sync default category from dynamic subjects list
+  React.useEffect(() => {
+    if (subjects && subjects.length > 0 && !newCategory) {
+      setNewCategory(subjects[0].name);
+    }
+  }, [subjects, newCategory]);
+
+  const categories = ['All', ...Array.from(new Set([...subjects.map((s) => s.name), ...questions.map((q) => q.category)]))];
 
   const filteredQuestions = questions.filter((q) => {
     const matchesSearch = q.text.toLowerCase().includes(search.toLowerCase()) ||
@@ -559,7 +569,7 @@ export default function QuestionBank({
 
               {/* Text Question */}
               <h3 className="text-sm md:text-base font-semibold text-slate-800 dark:text-slate-100 leading-relaxed mb-4">
-                {idx + 1}. {q.text}
+                {idx + 1}. <MathRenderer text={q.text} />
               </h3>
 
               {/* Optional Question Image Illustration */}
@@ -592,7 +602,7 @@ export default function QuestionBank({
                       }`}>
                         {String.fromCharCode(65 + oIdx)}
                       </span>
-                      <span className="truncate">{opt}</span>
+                      <span className="truncate whitespace-normal"><MathRenderer text={opt} /></span>
                       {isCorrect && <Check className="w-3.5 h-3.5 text-emerald-500 ml-auto shrink-0" />}
                     </div>
                   );
@@ -606,7 +616,7 @@ export default function QuestionBank({
                     <BookMarked className="w-3.5 h-3.5 text-blue-500" />
                     <span>Pembahasan Kunci:</span>
                   </span>
-                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed italic">{q.explanation}</p>
+                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed italic"><MathRenderer text={q.explanation} /></p>
                 </div>
               )}
             </div>
@@ -649,12 +659,14 @@ export default function QuestionBank({
                     onChange={(e) => setNewCategory(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:border-blue-500"
                   >
-                    <option value="Matematika">Matematika</option>
-                    <option value="Fisika">Fisika</option>
-                    <option value="Biologi">Biologi</option>
-                    <option value="Kimia">Kimia</option>
-                    <option value="Bahasa Indonesia">Bahasa Indonesia</option>
-                    <option value="Bahasa Inggris">Bahasa Inggris</option>
+                    {subjects.map((sub) => (
+                      <option key={sub.id} value={sub.name}>
+                        {sub.name}
+                      </option>
+                    ))}
+                    {!subjects.some((s) => s.name === newCategory) && newCategory && (
+                      <option value={newCategory}>{newCategory}</option>
+                    )}
                   </select>
                 </div>
                 <div>

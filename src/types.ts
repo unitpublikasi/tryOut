@@ -70,6 +70,19 @@ export interface SystemSettings {
   maintenanceMode: boolean;
 }
 
+export interface Subject {
+  id: string;
+  name: string;
+  description: string;
+  levels?: string[]; // e.g., ['SD', 'SMP', 'SMA']
+}
+
+export interface SchoolLevel {
+  id: string;
+  name: string; // e.g., 'SD', 'SMP', 'SMA'
+  description: string;
+}
+
 export interface ToastNotification {
   id: string;
   message: string;

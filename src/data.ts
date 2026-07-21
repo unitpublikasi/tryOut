@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { User, Question, Tryout, Submission, SystemSettings } from './types';
+import { User, Question, Tryout, Submission, SystemSettings, Subject, SchoolLevel } from './types';
 
 export const MOCK_USERS: User[] = [
   {
@@ -310,6 +310,21 @@ export const DEFAULT_SETTINGS: SystemSettings = {
   maintenanceMode: false,
 };
 
+export const MOCK_SUBJECTS: Subject[] = [
+  { id: 'sb-1', name: 'Matematika', description: 'Mata pelajaran hitung, aljabar, kalkulus, dan logika numerik.', levels: ['SD', 'SMP', 'SMA'] },
+  { id: 'sb-2', name: 'Fisika', description: 'Studi kinematika, dinamika, listrik, magnet, dan termodinamika.', levels: ['SMP', 'SMA'] },
+  { id: 'sb-3', name: 'Biologi', description: 'Studi tentang struktur sel, keanekaragaman hayati, ekologi, dan genetika.', levels: ['SMP', 'SMA'] },
+  { id: 'sb-4', name: 'Kimia', description: 'Studi reaksi zat kimia, tabel periodik, stoikiometri, dan larutan.', levels: ['SMA'] },
+  { id: 'sb-5', name: 'Bahasa Indonesia', description: 'Tata bahasa baku, pemahaman bacaan teks, dan karya sastra.', levels: ['SD', 'SMP', 'SMA'] },
+  { id: 'sb-6', name: 'Bahasa Inggris', description: 'English grammar, reading comprehension, vocabulary, and dialogue.', levels: ['SD', 'SMP', 'SMA'] },
+];
+
+export const MOCK_SCHOOL_LEVELS: SchoolLevel[] = [
+  { id: 'lv-1', name: 'SD', description: 'Sekolah Dasar (Kelas 1 - 6)' },
+  { id: 'lv-2', name: 'SMP', description: 'Sekolah Menengah Pertama (Kelas 7 - 9)' },
+  { id: 'lv-3', name: 'SMA', description: 'Sekolah Menengah Atas atau Kejuruan (Kelas 10 - 12)' },
+];
+
 // Local storage init helper
 export function initializeLocalStorageDatabase() {
   if (!localStorage.getItem('to_users')) {
@@ -326,6 +341,12 @@ export function initializeLocalStorageDatabase() {
   }
   if (!localStorage.getItem('to_settings')) {
     localStorage.setItem('to_settings', JSON.stringify(DEFAULT_SETTINGS));
+  }
+  if (!localStorage.getItem('to_subjects')) {
+    localStorage.setItem('to_subjects', JSON.stringify(MOCK_SUBJECTS));
+  }
+  if (!localStorage.getItem('to_school_levels')) {
+    localStorage.setItem('to_school_levels', JSON.stringify(MOCK_SCHOOL_LEVELS));
   }
 }
 

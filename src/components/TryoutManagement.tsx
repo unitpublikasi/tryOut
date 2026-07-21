@@ -19,12 +19,13 @@ import {
   Sparkles,
   Info
 } from 'lucide-react';
-import { User, Tryout, Question } from '../types';
+import { User, Tryout, Question, Subject } from '../types';
 
 interface TryoutManagementProps {
   user: User;
   tryouts: Tryout[];
   questions: Question[];
+  subjects: Subject[];
   onAddTryout: (newTryout: Tryout) => void;
   onUpdateTryout: (updatedTryout: Tryout) => void;
   onDeleteTryout: (id: string) => void;
@@ -36,6 +37,7 @@ export default function TryoutManagement({
   user,
   tryouts,
   questions,
+  subjects,
   onAddTryout,
   onUpdateTryout,
   onDeleteTryout,
@@ -49,8 +51,15 @@ export default function TryoutManagement({
   const [desc, setDesc] = useState('');
   const [duration, setDuration] = useState<number>(30);
   const [passingGrade, setPassingGrade] = useState<number>(75);
-  const [category, setCategory] = useState('Matematika');
+  const [category, setCategory] = useState('');
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
+
+  // Sync default category from dynamic subjects list
+  React.useEffect(() => {
+    if (subjects && subjects.length > 0 && !category) {
+      setCategory(subjects[0].name);
+    }
+  }, [subjects, category]);
 
   // Editing tryout pointer (null if creating, Tryout object if editing)
   const [editingTryout, setEditingTryout] = useState<Tryout | null>(null);
@@ -435,12 +444,14 @@ export default function TryoutManagement({
                     onChange={(e) => handleCategoryChange(e.target.value)}
                     className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:border-indigo-500 text-black font-semibold"
                   >
-                    <option value="Matematika">Matematika</option>
-                    <option value="Fisika">Fisika</option>
-                    <option value="Biologi">Biologi</option>
-                    <option value="Kimia">Kimia</option>
-                    <option value="Bahasa Indonesia">Bahasa Indonesia</option>
-                    <option value="Bahasa Inggris">Bahasa Inggris</option>
+                    {subjects.map((sub) => (
+                      <option key={sub.id} value={sub.name}>
+                        {sub.name}
+                      </option>
+                    ))}
+                    {!subjects.some((s) => s.name === category) && category && (
+                      <option value={category}>{category}</option>
+                    )}
                   </select>
                 </div>
               </div>
