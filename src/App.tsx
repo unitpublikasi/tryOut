@@ -27,6 +27,7 @@ import SystemSettingsComponent from './components/SystemSettings';
 import ExamPlayer from './components/ExamPlayer';
 import ResultView from './components/ResultView';
 import UserManagement from './components/UserManagement';
+import TryoutManagement from './components/TryoutManagement';
 
 import { Menu, X, ShieldAlert, Sparkles, Check, AlertCircle } from 'lucide-react';
 
@@ -342,6 +343,7 @@ export default function App() {
                         {[
                           { id: 'dashboard', label: 'Dashboard' },
                           { id: 'bank-soal', label: 'Bank Soal', roles: ['admin', 'guru'] },
+                          { id: 'try-out-list', label: 'Manajemen Try Out', roles: ['admin', 'guru'] },
                           { id: 'laporan', label: 'Laporan & Analitik', roles: ['admin', 'guru'] },
                           { id: 'users-manage', label: 'Manajemen User', roles: ['admin'] },
                           { id: 'profil', label: 'Profil Saya' },
@@ -422,6 +424,20 @@ export default function App() {
                     onDeleteQuestion={handleDeleteQuestion}
                     userRole={currentUser.role}
                     userId={currentUser.id}
+                  />
+                )}
+
+                {/* 4.5. VIEW MANAJEMEN TRY OUT (CRUD) */}
+                {currentUser && activePage === 'try-out-list' && (currentUser.role === 'admin' || currentUser.role === 'guru') && (
+                  <TryoutManagement
+                    user={currentUser}
+                    tryouts={tryouts}
+                    questions={questions}
+                    onAddTryout={handleAddTryout}
+                    onUpdateTryout={handleUpdateTryout}
+                    onDeleteTryout={handleDeleteTryout}
+                    onTogglePublish={handleTogglePublish}
+                    onToast={triggerToast}
                   />
                 )}
 
