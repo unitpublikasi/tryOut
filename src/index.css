@@ -60,3 +60,32 @@
 .glow-active {
   animation: active-glow 2s infinite;
 }
+
+/* Global High-Contrast Style for all Form Controls */
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]),
+select,
+textarea {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  font-weight: 600 !important; /* Make it extra bold/clear for high legibility */
+}
+
+/* Ensure selection options inside select dropdown are also crisp white & black */
+select option {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Highly legible dark gray placeholders */
+input::placeholder,
+textarea::placeholder {
+  color: #4b5563 !important; /* dark slate/gray for readability */
+  opacity: 1 !important;
+}
+
+/* Ensure search and numeric inputs are perfectly readable */
+input[type="search"],
+input[type="number"] {
+  color: #000000 !important;
+}
+
