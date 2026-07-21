@@ -138,6 +138,7 @@ interface QuestionBankProps {
   onAddQuestion: (newQuestion: Question) => void;
   onAddQuestionsBulk: (newQuestions: Question[]) => void;
   onDeleteQuestion: (id: string) => void;
+  onDeleteQuestionsBulk?: (ids: string[]) => void;
   userRole: string;
   userId: string;
 }
@@ -147,6 +148,7 @@ export default function QuestionBank({
   onAddQuestion,
   onAddQuestionsBulk,
   onDeleteQuestion,
+  onDeleteQuestionsBulk,
   userRole,
   userId,
 }: QuestionBankProps) {
@@ -449,7 +451,7 @@ export default function QuestionBank({
 
       {/* Active Filters Row */}
       {(search || categoryFilter !== 'All' || difficultyFilter !== 'All') && (
-        <div id="active-filters-row" className="flex flex-wrap items-center justify-between gap-3 p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-200/60 dark:border-slate-800 text-xs">
+        <div id="active-filters-row" className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 p-5 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-200/60 dark:border-slate-800 text-xs">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-bold text-slate-500 dark:text-slate-400 font-mono uppercase tracking-wider mr-1">Filter Aktif:</span>
             {search && (
@@ -484,14 +486,39 @@ export default function QuestionBank({
                 setCategoryFilter('All');
                 setDifficultyFilter('All');
               }}
-              className="text-red-600 dark:text-red-400 font-bold hover:underline ml-2"
+              className="text-red-600 dark:text-red-400 font-bold hover:underline ml-2 text-xs font-semibold"
             >
-              Hapus Semua
+              Hapus Semua Filter
             </button>
           </div>
-          <span className="text-slate-500 dark:text-slate-400 font-mono">
-            Ditemukan <strong className="text-slate-800 dark:text-white">{filteredQuestions.length}</strong> butir soal
-          </span>
+
+          <div className="flex flex-col sm:flex-row items-center gap-3.5 justify-end shrink-0">
+            <span className="text-slate-500 dark:text-slate-400 font-mono text-center sm:text-right font-medium">
+              Terfilter: <strong className="text-slate-800 dark:text-white font-bold">{filteredQuestions.length}</strong> butir soal
+            </span>
+
+            {filteredQuestions.length > 0 && onDeleteQuestionsBulk && (
+              <button
+                id="btn-bulk-delete-filtered"
+                type="button"
+                onClick={() => {
+                  const qCount = filteredQuestions.length;
+                  const promptMessage = `PERHATIAN! Anda akan menghapus secara masal ${qCount} butir soal yang saat ini terpilih oleh filter.\n\nKetik kata "HAPUS" untuk mengonfirmasi tindakan permanen ini:`;
+                  const userInput = prompt(promptMessage);
+                  if (userInput?.toUpperCase() === 'HAPUS') {
+                    const idsToDelete = filteredQuestions.map((q) => q.id);
+                    onDeleteQuestionsBulk(idsToDelete);
+                  } else if (userInput !== null) {
+                    alert('Konfirmasi salah atau dibatalkan! Tindakan penghapusan masal dibatalkan.');
+                  }
+                }}
+                className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded-2xl flex items-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-red-500/15 text-xs"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Hapus Masal ({filteredQuestions.length})</span>
+              </button>
+            )}
+          </div>
         </div>
       )}
 

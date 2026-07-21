@@ -142,6 +142,13 @@ export default function App() {
     }
   };
 
+  const handleDeleteQuestionsBulk = (ids: string[]) => {
+    const updated = questions.filter((q) => !ids.includes(q.id));
+    setQuestions(updated);
+    saveToLocalStorage('to_questions', updated);
+    triggerToast(`Berhasil menghapus secara masal ${ids.length} butir soal dari database.`, 'info');
+  };
+
   const handleAddTryout = (newTryout: Tryout) => {
     const updated = [newTryout, ...tryouts];
     setTryouts(updated);
@@ -422,6 +429,7 @@ export default function App() {
                     onAddQuestion={handleAddQuestion}
                     onAddQuestionsBulk={handleAddQuestionsBulk}
                     onDeleteQuestion={handleDeleteQuestion}
+                    onDeleteQuestionsBulk={handleDeleteQuestionsBulk}
                     userRole={currentUser.role}
                     userId={currentUser.id}
                   />
