@@ -19,13 +19,14 @@ import {
   Sparkles,
   Info
 } from 'lucide-react';
-import { User, Tryout, Question, Subject } from '../types';
+import { User, Tryout, Question, Subject, SchoolLevel } from '../types';
 
 interface TryoutManagementProps {
   user: User;
   tryouts: Tryout[];
   questions: Question[];
   subjects: Subject[];
+  schoolLevels?: SchoolLevel[];
   onAddTryout: (newTryout: Tryout) => void;
   onUpdateTryout: (updatedTryout: Tryout) => void;
   onDeleteTryout: (id: string) => void;
@@ -38,6 +39,7 @@ export default function TryoutManagement({
   tryouts,
   questions,
   subjects,
+  schoolLevels = [],
   onAddTryout,
   onUpdateTryout,
   onDeleteTryout,
@@ -52,6 +54,7 @@ export default function TryoutManagement({
   const [duration, setDuration] = useState<number>(30);
   const [passingGrade, setPassingGrade] = useState<number>(75);
   const [category, setCategory] = useState('');
+  const [schoolLevel, setSchoolLevel] = useState('SMA');
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
 
   // Sync default category from dynamic subjects list
@@ -61,6 +64,13 @@ export default function TryoutManagement({
     }
   }, [subjects, category]);
 
+  // Sync default school level from dynamic school levels list
+  React.useEffect(() => {
+    if (schoolLevels && schoolLevels.length > 0) {
+      setSchoolLevel(schoolLevels[0].name);
+    }
+  }, [schoolLevels]);
+
   // Editing tryout pointer (null if creating, Tryout object if editing)
   const [editingTryout, setEditingTryout] = useState<Tryout | null>(null);
 
@@ -68,11 +78,13 @@ export default function TryoutManagement({
   const [modalSearchTerm, setModalSearchTerm] = useState('');
   const [modalCategoryFilter, setModalCategoryFilter] = useState('all');
   const [modalDifficultyFilter, setModalDifficultyFilter] = useState<'all' | 'easy' | 'medium' | 'hard'>('all');
+  const [modalSchoolLevelFilter, setModalSchoolLevelFilter] = useState('all');
   const [randomCount, setRandomCount] = useState<number>(5);
 
   // Search filter for main Try Out list
   const [mainSearchTerm, setMainSearchTerm] = useState('');
   const [mainCategoryFilter, setMainCategoryFilter] = useState('all');
+  const [mainSchoolLevelFilter, setMainSchoolLevelFilter] = useState('all');
 
   const handleCheckboxChange = (qId: string) => {
     setSelectedQuestionIds((prev) =>
@@ -86,9 +98,13 @@ export default function TryoutManagement({
     setDesc('');
     setDuration(30);
     setPassingGrade(75);
-    setCategory('Matematika');
+    const firstCat = subjects[0]?.name || 'Matematika';
+    const firstLevel = schoolLevels[0]?.name || 'SMA';
+    setCategory(firstCat);
+    setSchoolLevel(firstLevel);
     setSelectedQuestionIds([]);
-    setModalCategoryFilter('Matematika'); // match category automatically
+    setModalCategoryFilter(firstCat); // match category automatically
+    setModalSchoolLevelFilter(firstLevel); // match school level automatically
     setModalSearchTerm('');
     setModalDifficultyFilter('all');
     setShowCreateModal(true);
@@ -101,8 +117,10 @@ export default function TryoutManagement({
     setDuration(t.durationMinutes);
     setPassingGrade(t.passingGrade);
     setCategory(t.category);
+    setSchoolLevel(t.schoolLevel || 'SMA');
     setSelectedQuestionIds(t.questions.map((q) => q.id));
     setModalCategoryFilter(t.category);
+    setModalSchoolLevelFilter(t.schoolLevel || 'all');
     setModalSearchTerm('');
     setModalDifficultyFilter('all');
     setShowCreateModal(true);
@@ -113,12 +131,18 @@ export default function TryoutManagement({
     setModalCategoryFilter(newCategory);
   };
 
+  const handleSchoolLevelChange = (newLevel: string) => {
+    setSchoolLevel(newLevel);
+    setModalSchoolLevelFilter(newLevel);
+  };
+
   // Filtered available questions list for select in modal
   const filteredModalQuestions = questions.filter((q) => {
     const matchesSearch = q.text.toLowerCase().includes(modalSearchTerm.toLowerCase());
     const matchesCategory = modalCategoryFilter === 'all' || q.category === modalCategoryFilter;
     const matchesDifficulty = modalDifficultyFilter === 'all' || q.difficulty === modalDifficultyFilter;
-    return matchesSearch && matchesCategory && matchesDifficulty;
+    const matchesSchoolLevel = modalSchoolLevelFilter === 'all' || q.schoolLevel === modalSchoolLevelFilter;
+    return matchesSearch && matchesCategory && matchesDifficulty && matchesSchoolLevel;
   });
 
   // Bulk operation actions
@@ -175,6 +199,7 @@ export default function TryoutManagement({
         durationMinutes: Number(duration),
         passingGrade: Number(passingGrade),
         category,
+        schoolLevel,
         questions: compiledQuestions,
       };
       onUpdateTryout(updatedTryout);
@@ -187,6 +212,7 @@ export default function TryoutManagement({
         durationMinutes: Number(duration),
         passingGrade: Number(passingGrade),
         category,
+        schoolLevel,
         questions: compiledQuestions,
         startDate: new Date().toISOString(),
         endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
@@ -213,7 +239,8 @@ export default function TryoutManagement({
     const matchesSearch = t.title.toLowerCase().includes(mainSearchTerm.toLowerCase()) || 
                           t.description.toLowerCase().includes(mainSearchTerm.toLowerCase());
     const matchesCategory = mainCategoryFilter === 'all' || t.category === mainCategoryFilter;
-    return matchesSearch && matchesCategory;
+    const matchesSchoolLevel = mainSchoolLevelFilter === 'all' || t.schoolLevel === mainSchoolLevelFilter;
+    return matchesSearch && matchesCategory && matchesSchoolLevel;
   });
 
   const uniqueCategories = Array.from(new Set(tryouts.map((t) => t.category)));
@@ -270,6 +297,23 @@ export default function TryoutManagement({
               ))}
             </select>
           </div>
+
+          {/* School Level Dropdown */}
+          <div className="relative w-full sm:w-48">
+            <select
+              value={mainSchoolLevelFilter}
+              onChange={(e) => setMainSchoolLevelFilter(e.target.value)}
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:border-indigo-500"
+            >
+              <option value="all">Semua Tingkat Sekolah</option>
+              {schoolLevels.map((lvl) => (
+                <option key={lvl.id} value={lvl.name}>{lvl.name}</option>
+              ))}
+              {!schoolLevels.some(sl => sl.name === 'SD') && <option value="SD">SD</option>}
+              {!schoolLevels.some(sl => sl.name === 'SMP') && <option value="SMP">SMP</option>}
+              {!schoolLevels.some(sl => sl.name === 'SMA') && <option value="SMA">SMA</option>}
+            </select>
+          </div>
         </div>
 
         {/* Counter Info */}
@@ -288,9 +332,16 @@ export default function TryoutManagement({
             >
               <div>
                 <div className="flex justify-between items-start mb-3">
-                  <span className="px-2.5 py-0.5 text-[9px] font-bold rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-mono uppercase tracking-wider">
-                    {t.category}
-                  </span>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="px-2.5 py-0.5 text-[9px] font-bold rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-mono uppercase tracking-wider">
+                      {t.category}
+                    </span>
+                    {t.schoolLevel && (
+                      <span className="px-2.5 py-0.5 text-[9px] font-bold rounded bg-pink-50 dark:bg-pink-950/40 text-pink-600 dark:text-pink-400 font-mono uppercase tracking-wider">
+                        {t.schoolLevel}
+                      </span>
+                    )}
+                  </div>
 
                   {/* Publish/Draft toggle button */}
                   <button
@@ -411,8 +462,8 @@ export default function TryoutManagement({
                 />
               </div>
 
-              {/* Duration, KKM & Category Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* Duration, KKM, Category & School Level Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">Durasi (Menit)</label>
                   <input
@@ -454,6 +505,23 @@ export default function TryoutManagement({
                     )}
                   </select>
                 </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">Tingkat Sekolah</label>
+                  <select
+                    value={schoolLevel}
+                    onChange={(e) => handleSchoolLevelChange(e.target.value)}
+                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:border-indigo-500 text-black font-semibold"
+                  >
+                    {schoolLevels.map((lvl) => (
+                      <option key={lvl.id} value={lvl.name}>
+                        {lvl.name}
+                      </option>
+                    ))}
+                    {!schoolLevels.some(sl => sl.name === 'SD') && <option value="SD">SD</option>}
+                    {!schoolLevels.some(sl => sl.name === 'SMP') && <option value="SMP">SMP</option>}
+                    {!schoolLevels.some(sl => sl.name === 'SMA') && <option value="SMA">SMA</option>}
+                  </select>
+                </div>
               </div>
 
               {/* Upgraded Import & Select Section from Question Bank */}
@@ -473,7 +541,7 @@ export default function TryoutManagement({
                 </div>
 
                 {/* Filters Row inside modal */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs">
                   {/* Search Term */}
                   <div className="relative">
                     <input
@@ -494,12 +562,33 @@ export default function TryoutManagement({
                       className="w-full px-2.5 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:border-indigo-500 text-black font-semibold"
                     >
                       <option value="all">Semua Mapel</option>
-                      <option value="Matematika">Matematika</option>
-                      <option value="Fisika">Fisika</option>
-                      <option value="Biologi">Biologi</option>
-                      <option value="Kimia">Kimia</option>
-                      <option value="Bahasa Indonesia">Bahasa Indonesia</option>
-                      <option value="Bahasa Inggris">Bahasa Inggris</option>
+                      {subjects.map((sub) => (
+                        <option key={sub.id} value={sub.name}>
+                          {sub.name}
+                        </option>
+                      ))}
+                      {!subjects.some((s) => s.name === modalCategoryFilter) && modalCategoryFilter !== 'all' && (
+                        <option value={modalCategoryFilter}>{modalCategoryFilter}</option>
+                      )}
+                    </select>
+                  </div>
+
+                  {/* School Level Filter inside modal */}
+                  <div>
+                    <select
+                      value={modalSchoolLevelFilter}
+                      onChange={(e) => setModalSchoolLevelFilter(e.target.value)}
+                      className="w-full px-2.5 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:border-indigo-500 text-black font-semibold"
+                    >
+                      <option value="all">Semua Tingkat</option>
+                      {schoolLevels.map((lvl) => (
+                        <option key={lvl.id} value={lvl.name}>
+                          {lvl.name}
+                        </option>
+                      ))}
+                      {!schoolLevels.some(sl => sl.name === 'SD') && <option value="SD">SD</option>}
+                      {!schoolLevels.some(sl => sl.name === 'SMP') && <option value="SMP">SMP</option>}
+                      {!schoolLevels.some(sl => sl.name === 'SMA') && <option value="SMA">SMA</option>}
                     </select>
                   </div>
 

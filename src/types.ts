@@ -27,6 +27,7 @@ export interface Question {
   explanation: string;
   teacherId: string;
   imageUrl?: string; // Optional illustration image
+  schoolLevel?: string; // e.g., 'SD', 'SMP', 'SMA'
 }
 
 export interface Tryout {
@@ -41,6 +42,7 @@ export interface Tryout {
   endDate: string; // ISO String
   createdBy: string; // Teacher or Admin ID
   isPublished: boolean;
+  schoolLevel?: string; // e.g., 'SD', 'SMP', 'SMA'
 }
 
 export interface Submission {

@@ -308,6 +308,11 @@ export default function Dashboard({
                             <span className="px-2.5 py-0.5 text-[10px] font-bold rounded bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 font-mono">
                               {t.category.toUpperCase()}
                             </span>
+                            {t.schoolLevel && (
+                              <span className="px-2.5 py-0.5 text-[10px] font-bold rounded bg-pink-50 dark:bg-pink-950/40 text-pink-600 dark:text-pink-400 font-mono uppercase">
+                                {t.schoolLevel}
+                              </span>
+                            )}
                             <span className="text-xs text-slate-400 font-mono font-bold">KKM: {t.passingGrade}</span>
                           </div>
                           <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm md:text-base">{t.title}</h4>

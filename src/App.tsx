@@ -473,6 +473,7 @@ export default function App() {
                   <QuestionBank
                     questions={questions}
                     subjects={subjects}
+                    schoolLevels={schoolLevels}
                     onAddQuestion={handleAddQuestion}
                     onAddQuestionsBulk={handleAddQuestionsBulk}
                     onDeleteQuestion={handleDeleteQuestion}
@@ -489,6 +490,7 @@ export default function App() {
                     tryouts={tryouts}
                     questions={questions}
                     subjects={subjects}
+                    schoolLevels={schoolLevels}
                     onAddTryout={handleAddTryout}
                     onUpdateTryout={handleUpdateTryout}
                     onDeleteTryout={handleDeleteTryout}

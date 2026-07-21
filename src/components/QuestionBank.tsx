@@ -22,7 +22,7 @@ import {
   Info,
   FileSpreadsheet
 } from 'lucide-react';
-import { Question, Subject } from '../types';
+import { Question, Subject, SchoolLevel } from '../types';
 import MathRenderer from './MathRenderer';
 
 /// Sample Templates for Import
@@ -137,6 +137,7 @@ function parseCSV(text: string): ParsedQuestion[] {
 interface QuestionBankProps {
   questions: Question[];
   subjects: Subject[];
+  schoolLevels?: SchoolLevel[];
   onAddQuestion: (newQuestion: Question) => void;
   onAddQuestionsBulk: (newQuestions: Question[]) => void;
   onDeleteQuestion: (id: string) => void;
@@ -148,6 +149,7 @@ interface QuestionBankProps {
 export default function QuestionBank({
   questions,
   subjects,
+  schoolLevels = [],
   onAddQuestion,
   onAddQuestionsBulk,
   onDeleteQuestion,
@@ -158,6 +160,7 @@ export default function QuestionBank({
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [difficultyFilter, setDifficultyFilter] = useState('All');
+  const [schoolLevelFilter, setSchoolLevelFilter] = useState('All');
   const [showAddModal, setShowAddModal] = useState(false);
 
   // Import / Export states
@@ -173,6 +176,7 @@ export default function QuestionBank({
   const [newCorrectAnswer, setNewCorrectAnswer] = useState<number>(0);
   const [newCategory, setNewCategory] = useState('');
   const [newDifficulty, setNewDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  const [newSchoolLevel, setNewSchoolLevel] = useState('SMA');
   const [newExplanation, setNewExplanation] = useState('');
   const [newImageUrl, setNewImageUrl] = useState('');
 
@@ -183,6 +187,13 @@ export default function QuestionBank({
     }
   }, [subjects, newCategory]);
 
+  // Sync default school level from dynamic school levels list
+  React.useEffect(() => {
+    if (schoolLevels && schoolLevels.length > 0) {
+      setNewSchoolLevel(schoolLevels[0].name);
+    }
+  }, [schoolLevels]);
+
   const categories = ['All', ...Array.from(new Set([...subjects.map((s) => s.name), ...questions.map((q) => q.category)]))];
 
   const filteredQuestions = questions.filter((q) => {
@@ -190,7 +201,8 @@ export default function QuestionBank({
                           q.explanation.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = categoryFilter === 'All' || q.category === categoryFilter;
     const matchesDifficulty = difficultyFilter === 'All' || q.difficulty === difficultyFilter;
-    return matchesSearch && matchesCategory && matchesDifficulty;
+    const matchesSchoolLevel = schoolLevelFilter === 'All' || q.schoolLevel === schoolLevelFilter;
+    return matchesSearch && matchesCategory && matchesDifficulty && matchesSchoolLevel;
   });
 
   const handleOptionChange = (idx: number, val: string) => {
@@ -218,6 +230,7 @@ export default function QuestionBank({
       explanation: newExplanation || 'Tidak ada penjelasan tambahan.',
       teacherId: userId,
       imageUrl: newImageUrl || undefined,
+      schoolLevel: newSchoolLevel,
     };
 
     onAddQuestion(created);
@@ -342,7 +355,8 @@ export default function QuestionBank({
         difficulty: q.difficulty || 'medium',
         explanation: q.explanation || 'Tidak ada penjelasan tambahan.',
         teacherId: userId,
-        imageUrl: q.imageUrl || undefined
+        imageUrl: q.imageUrl || undefined,
+        schoolLevel: (q as any).schoolLevel || newSchoolLevel || 'SMA'
       }));
 
       onAddQuestionsBulk(finalQuestions);
@@ -411,9 +425,9 @@ export default function QuestionBank({
       </div>
 
       {/* Filters & Search Toolbar */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl">
         {/* Search Bar */}
-        <div className="relative md:col-span-2">
+        <div className="relative sm:col-span-2 lg:col-span-2">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400" />
           <input
             id="search-questions-input"
@@ -442,6 +456,27 @@ export default function QuestionBank({
           <Filter className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
         </div>
 
+        {/* School Level Filter */}
+        <div className="relative">
+          <select
+            id="school-level-filter-select"
+            value={schoolLevelFilter}
+            onChange={(e) => setSchoolLevelFilter(e.target.value)}
+            className="w-full pl-4 pr-10 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/80 rounded-2xl text-sm focus:outline-none focus:border-blue-500 transition-colors appearance-none cursor-pointer"
+          >
+            <option value="All">Tingkat: Semua</option>
+            {schoolLevels.map((lvl) => (
+              <option key={lvl.id} value={lvl.name}>
+                Tingkat: {lvl.name}
+              </option>
+            ))}
+            {!schoolLevels.some(sl => sl.name === 'SD') && <option value="SD">Tingkat: SD</option>}
+            {!schoolLevels.some(sl => sl.name === 'SMP') && <option value="SMP">Tingkat: SMP</option>}
+            {!schoolLevels.some(sl => sl.name === 'SMA') && <option value="SMA">Tingkat: SMA</option>}
+          </select>
+          <Filter className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+        </div>
+
         {/* Difficulty Filter */}
         <div className="relative">
           <select
@@ -460,7 +495,7 @@ export default function QuestionBank({
       </div>
 
       {/* Active Filters Row */}
-      {(search || categoryFilter !== 'All' || difficultyFilter !== 'All') && (
+      {(search || categoryFilter !== 'All' || difficultyFilter !== 'All' || schoolLevelFilter !== 'All') && (
         <div id="active-filters-row" className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 p-5 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-200/60 dark:border-slate-800 text-xs">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-bold text-slate-500 dark:text-slate-400 font-mono uppercase tracking-wider mr-1">Filter Aktif:</span>
@@ -480,6 +515,14 @@ export default function QuestionBank({
                 </button>
               </span>
             )}
+            {schoolLevelFilter !== 'All' && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-pink-50 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 rounded-xl border border-pink-200/50 font-medium">
+                <span>Tingkat: {schoolLevelFilter}</span>
+                <button type="button" onClick={() => setSchoolLevelFilter('All')} className="hover:text-red-500 text-pink-400 flex items-center justify-center">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
             {difficultyFilter !== 'All' && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 rounded-xl border border-emerald-200/50 font-medium">
                 <span>Kesulitan: {difficultyFilter === 'easy' ? 'Mudah' : difficultyFilter === 'medium' ? 'Sedang' : 'Sukar'}</span>
@@ -494,6 +537,7 @@ export default function QuestionBank({
               onClick={() => {
                 setSearch('');
                 setCategoryFilter('All');
+                setSchoolLevelFilter('All');
                 setDifficultyFilter('All');
               }}
               className="text-red-600 dark:text-red-400 font-bold hover:underline ml-2 text-xs font-semibold"
@@ -552,6 +596,11 @@ export default function QuestionBank({
                   }`}>
                     {q.difficulty}
                   </span>
+                  {q.schoolLevel && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-pink-50 dark:bg-pink-950/40 text-pink-600 dark:text-pink-400 font-mono uppercase">
+                      {q.schoolLevel}
+                    </span>
+                  )}
                 </div>
 
                 {/* Delete button (only Creator/Admin) */}
@@ -650,8 +699,8 @@ export default function QuestionBank({
 
             {/* Modal Form */}
             <form onSubmit={handleCreateQuestion} className="space-y-5">
-              {/* Category & Difficulty Selection */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* Category, Difficulty & School Level Selection */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">Mata Pelajaran (Kategori)</label>
                   <select
@@ -679,6 +728,23 @@ export default function QuestionBank({
                     <option value="easy">Mudah</option>
                     <option value="medium">Sedang</option>
                     <option value="hard">Sukar</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">Tingkat Sekolah</label>
+                  <select
+                    value={newSchoolLevel}
+                    onChange={(e) => setNewSchoolLevel(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:border-blue-500"
+                  >
+                    {schoolLevels.map((lvl) => (
+                      <option key={lvl.id} value={lvl.name}>
+                        {lvl.name}
+                      </option>
+                    ))}
+                    {!schoolLevels.some(sl => sl.name === 'SD') && <option value="SD">SD</option>}
+                    {!schoolLevels.some(sl => sl.name === 'SMP') && <option value="SMP">SMP</option>}
+                    {!schoolLevels.some(sl => sl.name === 'SMA') && <option value="SMA">SMA</option>}
                   </select>
                 </div>
               </div>

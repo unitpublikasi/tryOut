@@ -66,7 +66,8 @@ export const MOCK_QUESTIONS: Question[] = [
     category: 'Matematika',
     difficulty: 'easy',
     explanation: 'f\'(x) = 6x - 5. Maka f\'(2) = 6(2) - 5 = 12 - 5 = 7.',
-    teacherId: 'u-2'
+    teacherId: 'u-2',
+    schoolLevel: 'SMA'
   },
   {
     id: 'q-2',
@@ -76,7 +77,8 @@ export const MOCK_QUESTIONS: Question[] = [
     category: 'Matematika',
     difficulty: 'medium',
     explanation: 'Berdasarkan limit fungsi trigonometri, lim_{x -> 0} (sin ax) / (bx) = a/b. Di sini a=4, b=3, sehingga hasilnya 4/3.',
-    teacherId: 'u-2'
+    teacherId: 'u-2',
+    schoolLevel: 'SMA'
   },
   {
     id: 'q-3',
@@ -86,7 +88,8 @@ export const MOCK_QUESTIONS: Question[] = [
     category: 'Matematika',
     difficulty: 'hard',
     explanation: 'Jumlah wanita = 12, Pria = 8. Peluang terpilih 2 wanita = C(12,2) / C(20,2) = 66 / 190 = 33/95.',
-    teacherId: 'u-2'
+    teacherId: 'u-2',
+    schoolLevel: 'SMA'
   },
   // Physics Questions
   {
@@ -97,7 +100,8 @@ export const MOCK_QUESTIONS: Question[] = [
     category: 'Fisika',
     difficulty: 'easy',
     explanation: 'Berdasarkan Hukum II Newton, F = m * a. Maka a = F / m = 20 N / 5 kg = 4 m/s^2.',
-    teacherId: 'u-2'
+    teacherId: 'u-2',
+    schoolLevel: 'SMA'
   },
   {
     id: 'q-5',
@@ -107,7 +111,8 @@ export const MOCK_QUESTIONS: Question[] = [
     category: 'Fisika',
     difficulty: 'medium',
     explanation: 'GGL Induksi (e) = -L * (dI/dt) = -0.4 * ((2 - 10) / 0.1) = -0.4 * (-8 / 0.1) = 32 Volt.',
-    teacherId: 'u-2'
+    teacherId: 'u-2',
+    schoolLevel: 'SMA'
   },
   // Biology Questions
   {
@@ -118,7 +123,8 @@ export const MOCK_QUESTIONS: Question[] = [
     category: 'Biologi',
     difficulty: 'easy',
     explanation: 'Mitokondria sering disebut sebagai the power house of cell karena fungsinya memproduksi ATP melalui respirasi aerobik.',
-    teacherId: 'u-2'
+    teacherId: 'u-2',
+    schoolLevel: 'SMP'
   },
   {
     id: 'q-7',
@@ -128,7 +134,8 @@ export const MOCK_QUESTIONS: Question[] = [
     category: 'Biologi',
     difficulty: 'medium',
     explanation: 'Ini adalah persilangan test cross dihibrid (BbKk x bbkk). Hasil gamet BbKk ada 4 jenis (BK, Bk, bK, bk) sedangkan bbkk hanya 1 jenis (bk). Maka keturunan memiliki proporsi sama yaitu 1 bulat kuning : 1 bulat hijau : 1 keriput kuning : 1 keriput hijau (1:1:1:1).',
-    teacherId: 'u-2'
+    teacherId: 'u-2',
+    schoolLevel: 'SMA'
   },
   // English Questions
   {
@@ -139,7 +146,8 @@ export const MOCK_QUESTIONS: Question[] = [
     category: 'Bahasa Inggris',
     difficulty: 'medium',
     explanation: 'This is a Conditional Sentence Type 3 (past unreal condition). The structure is: If + Subject + past perfect (had + V3), Subject + would have + V3.',
-    teacherId: 'u-2'
+    teacherId: 'u-2',
+    schoolLevel: 'SMA'
   },
   {
     id: 'q-9',
@@ -154,7 +162,8 @@ export const MOCK_QUESTIONS: Question[] = [
     category: 'Bahasa Inggris',
     difficulty: 'medium',
     explanation: 'The original sentence is in Present Continuous tense. The continuous passive form is: Subject + is/am/are + being + V3 + by agent.',
-    teacherId: 'u-2'
+    teacherId: 'u-2',
+    schoolLevel: 'SMP'
   },
   {
     id: 'q-10',
@@ -164,7 +173,8 @@ export const MOCK_QUESTIONS: Question[] = [
     category: 'Bahasa Inggris',
     difficulty: 'easy',
     explanation: 'Meticulous means showing great attention to detail; very careful and precise.',
-    teacherId: 'u-2'
+    teacherId: 'u-2',
+    schoolLevel: 'SD'
   }
 ];
 
@@ -181,6 +191,7 @@ export const MOCK_TRYOUTS: Tryout[] = [
     endDate: '2026-08-31T23:59:59Z',
     createdBy: 'u-2',
     isPublished: true,
+    schoolLevel: 'SMA'
   },
   {
     id: 'to-2',
@@ -194,6 +205,7 @@ export const MOCK_TRYOUTS: Tryout[] = [
     endDate: '2026-08-25T23:59:59Z',
     createdBy: 'u-2',
     isPublished: true,
+    schoolLevel: 'SMA'
   },
   {
     id: 'to-3',
@@ -207,6 +219,7 @@ export const MOCK_TRYOUTS: Tryout[] = [
     endDate: '2026-08-30T17:00:00Z',
     createdBy: 'u-2',
     isPublished: true,
+    schoolLevel: 'SMA'
   }
 ];
 
