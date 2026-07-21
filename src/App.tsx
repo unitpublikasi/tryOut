@@ -125,6 +125,13 @@ export default function App() {
     triggerToast('Butir soal baru berhasil dimasukkan ke Bank Soal!', 'success');
   };
 
+  const handleAddQuestionsBulk = (newQuestions: Question[]) => {
+    const updated = [...newQuestions, ...questions];
+    setQuestions(updated);
+    saveToLocalStorage('to_questions', updated);
+    triggerToast(`Berhasil mengimpor ${newQuestions.length} butir soal ke Bank Soal!`, 'success');
+  };
+
   const handleDeleteQuestion = (id: string) => {
     if (confirm('Yakin ingin menghapus butir soal ini? Tindakan ini permanen.')) {
       const updated = questions.filter((q) => q.id !== id);
@@ -411,6 +418,7 @@ export default function App() {
                   <QuestionBank
                     questions={questions}
                     onAddQuestion={handleAddQuestion}
+                    onAddQuestionsBulk={handleAddQuestionsBulk}
                     onDeleteQuestion={handleDeleteQuestion}
                     userRole={currentUser.role}
                     userId={currentUser.id}

@@ -145,6 +145,18 @@ export default function ResultView({ submission, tryout, onClose }: ResultViewPr
                   {q.text}
                 </h4>
 
+                {/* Optional Question Image Illustration */}
+                {q.imageUrl && (
+                  <div className="mb-4 max-h-[220px] overflow-hidden rounded-2xl border border-slate-200/60 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 flex justify-center p-3">
+                    <img
+                      src={q.imageUrl}
+                      alt={`Ilustrasi Soal ${idx + 1}`}
+                      className="max-h-[190px] object-contain rounded-xl shadow-sm"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                )}
+
                 {/* Display options highlighting student's choice and the correct one */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   {q.options.map((opt, oIdx) => {

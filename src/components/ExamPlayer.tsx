@@ -196,9 +196,21 @@ export default function ExamPlayer({
         {/* Question Panel */}
         <div className="flex-1 p-8 overflow-y-auto">
           {/* Question Text */}
-          <div id={`question-text-${currentQuestion.id}`} className="text-lg font-medium text-slate-800 dark:text-slate-100 leading-relaxed mb-8">
+          <div id={`question-text-${currentQuestion.id}`} className="text-lg font-medium text-slate-800 dark:text-slate-100 leading-relaxed mb-6">
             {currentQuestion.text}
           </div>
+
+          {/* Optional Question Image Illustration */}
+          {currentQuestion.imageUrl && (
+            <div className="mb-8 max-h-[350px] overflow-hidden rounded-2xl border border-slate-200/60 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex justify-center p-4">
+              <img
+                src={currentQuestion.imageUrl}
+                alt="Ilustrasi Soal"
+                className="max-h-[300px] object-contain rounded-lg"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+          )}
 
           {/* Options Grid */}
           <div id="options-grid" className="space-y-4">

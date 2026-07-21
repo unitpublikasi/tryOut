@@ -26,6 +26,7 @@ export interface Question {
   difficulty: 'easy' | 'medium' | 'hard';
   explanation: string;
   teacherId: string;
+  imageUrl?: string; // Optional illustration image
 }
 
 export interface Tryout {
