@@ -16,7 +16,8 @@ import {
   LogOut,
   FolderOpen,
   Users,
-  School
+  School,
+  Trophy
 } from 'lucide-react';
 import { User as UserType } from '../types';
 
@@ -64,6 +65,12 @@ export default function Sidebar({ user, activePage, onNavigate, onLogout }: Side
       label: 'Riwayat & Hasil',
       icon: Clock,
       roles: ['siswa'],
+    },
+    {
+      id: 'siswa-ranking',
+      label: 'Ranking Hasil Try Out',
+      icon: Trophy,
+      roles: ['admin', 'guru', 'siswa'],
     },
     {
       id: 'laporan',

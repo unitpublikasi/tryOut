@@ -23,7 +23,10 @@ import {
   Search,
   Shuffle,
   Filter,
-  Sparkles
+  Sparkles,
+  Trophy,
+  Crown,
+  ChevronRight
 } from 'lucide-react';
 import { User, Tryout, Submission, Question } from '../types';
 
@@ -39,6 +42,7 @@ interface DashboardProps {
   onDeleteTryout: (id: string) => void;
   onTogglePublish: (id: string) => void;
   onToast: (msg: string, type: 'success' | 'error' | 'info') => void;
+  onNavigate?: (page: string) => void;
 }
 
 export default function Dashboard({
@@ -53,6 +57,7 @@ export default function Dashboard({
   onDeleteTryout,
   onTogglePublish,
   onToast,
+  onNavigate,
 }: DashboardProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'tryouts' | 'activities'>('tryouts');
@@ -369,11 +374,95 @@ export default function Dashboard({
               </div>
             </div>
 
-            {/* Historical Submissions */}
-            <div className="lg:col-span-5 space-y-4">
-              <h3 className="font-bold text-sm text-slate-700 dark:text-slate-300 uppercase tracking-wider font-mono border-b border-slate-100 dark:border-slate-800 pb-2">
-                Riwayat & Lembar Nilai Anda
-              </h3>
+            {/* Historical Submissions & Quick Ranking */}
+            <div className="lg:col-span-5 space-y-6">
+              {/* Leaderboard Top 5 Preview Card */}
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <Trophy className="w-4 h-4 text-amber-500" />
+                    <h3 className="font-bold text-xs uppercase tracking-wider font-mono text-slate-800 dark:text-slate-200">
+                      Papan Ranking Hasil Try Out
+                    </h3>
+                  </div>
+                  {onNavigate && (
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('siswa-ranking')}
+                      className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-0.5"
+                    >
+                      <span>Lihat Semua</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  {submissions.filter((s) => s.status === 'completed' || s.score !== undefined).length > 0 ? (
+                    [...submissions]
+                      .filter((s) => s.status === 'completed' || s.score !== undefined)
+                      .sort((a, b) => b.score - a.score)
+                      .slice(0, 4)
+                      .map((sub, index) => {
+                        const isMe = sub.studentId === user.id;
+                        return (
+                          <div
+                            key={`top-rank-${sub.id}-${index}`}
+                            className={`p-2.5 rounded-xl border flex items-center justify-between gap-3 text-xs ${
+                              isMe
+                                ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-300 dark:border-blue-800'
+                                : 'bg-slate-50/60 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span className={`w-6 h-6 rounded-lg flex items-center justify-center font-bold font-mono text-xs shrink-0 ${
+                                index === 0
+                                  ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-600 border border-amber-300'
+                                  : index === 1
+                                  ? 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200'
+                                  : index === 2
+                                  ? 'bg-amber-900/10 text-amber-800 dark:text-amber-400'
+                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                              }`}>
+                                {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                              </span>
+                              <div className="min-w-0">
+                                <div className="font-bold text-slate-800 dark:text-slate-200 truncate flex items-center gap-1">
+                                  <span>{sub.studentName}</span>
+                                  {isMe && (
+                                    <span className="text-[8px] bg-blue-600 text-white px-1 py-0.2 rounded font-mono font-normal">
+                                      Anda
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-[10px] text-slate-400 font-mono truncate">
+                                  {sub.studentClass || 'Siswa'} &bull; {sub.tryoutTitle}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="text-right shrink-0">
+                              <span className="font-bold font-mono text-slate-800 dark:text-slate-100 text-sm">
+                                {sub.score}
+                              </span>
+                              <span className="text-[9px] text-slate-400 block font-mono">Skor</span>
+                            </div>
+                          </div>
+                        );
+                      })
+                  ) : (
+                    <div className="text-center py-6 text-slate-400 font-mono text-xs italic">
+                      Belum ada perolehan skor terdaftar.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Historical Submissions */}
+              <div className="space-y-4">
+                <h3 className="font-bold text-sm text-slate-700 dark:text-slate-300 uppercase tracking-wider font-mono border-b border-slate-100 dark:border-slate-800 pb-2">
+                  Riwayat & Lembar Nilai Anda
+                </h3>
 
               <div className="space-y-3">
                 {studentSubmissions.length > 0 ? (
@@ -419,6 +508,7 @@ export default function Dashboard({
             </div>
           </div>
         </div>
+      </div>
       ) : (
         /* GURU (TEACHER) & ADMIN VIEWPORT */
         <div className="space-y-6">

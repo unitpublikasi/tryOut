@@ -31,6 +31,7 @@ import ResultView from './components/ResultView';
 import UserManagement from './components/UserManagement';
 import TryoutManagement from './components/TryoutManagement';
 import SubjectLevelManagement from './components/SubjectLevelManagement';
+import RankingView from './components/RankingView';
 
 import { Menu, X, ShieldAlert, Sparkles, Check, AlertCircle } from 'lucide-react';
 
@@ -465,6 +466,7 @@ export default function App() {
                     onDeleteTryout={handleDeleteTryout}
                     onTogglePublish={handleTogglePublish}
                     onToast={triggerToast}
+                    onNavigate={navigateToPage}
                   />
                 )}
 
@@ -513,6 +515,7 @@ export default function App() {
                     onDeleteTryout={handleDeleteTryout}
                     onTogglePublish={handleTogglePublish}
                     onToast={triggerToast}
+                    onNavigate={navigateToPage}
                   />
                 )}
 
@@ -537,8 +540,27 @@ export default function App() {
                       onDeleteTryout={handleDeleteTryout}
                       onTogglePublish={handleTogglePublish}
                       onToast={triggerToast}
+                      onNavigate={navigateToPage}
                     />
                   )
+                )}
+
+                {/* 6.5. VIEW STUDENT RANKING & LEADERBOARD */}
+                {currentUser && (activePage === 'siswa-ranking' || activePage === 'ranking') && (
+                  <RankingView
+                    currentUser={currentUser}
+                    submissions={submissions}
+                    tryouts={tryouts}
+                    schoolLevels={schoolLevels}
+                    subjects={subjects}
+                    onViewResult={(sub) => {
+                      setActiveResultSubmission(sub);
+                      setActivePage('siswa-hasil');
+                    }}
+                    onStartTryout={(t) => {
+                      setActiveTryout(t);
+                    }}
+                  />
                 )}
 
                 {/* 7. VIEW TEACHER ANALYTICS REPORT */}
