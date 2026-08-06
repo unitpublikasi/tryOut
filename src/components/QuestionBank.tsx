@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { Question, Subject, SchoolLevel } from '../types';
 import MathRenderer from './MathRenderer';
+import WysiwygEditor from './WysiwygEditor';
 
 /// Sample Templates for Import
 const SAMPLE_QUESTIONS_JSON = [
@@ -749,16 +750,14 @@ export default function QuestionBank({
                 </div>
               </div>
 
-              {/* Question text */}
+              {/* Question text with WYSIWYG Editor */}
               <div>
-                <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">Isi Teks Pertanyaan</label>
-                <textarea
-                  required
-                  placeholder="Ketik teks pertanyaan di sini..."
+                <WysiwygEditor
+                  label="Isi Teks Pertanyaan (Mendukung Tabel & Gambar)"
                   value={newText}
-                  onChange={(e) => setNewText(e.target.value)}
-                  rows={3}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:border-blue-500 resize-none"
+                  onChange={(val) => setNewText(val)}
+                  placeholder="Ketik teks pertanyaan di sini atau gunakan toolbar di atas untuk menyisipkan tabel, gambar, dan rumus..."
+                  rows={4}
                 />
               </div>
 
@@ -869,15 +868,14 @@ export default function QuestionBank({
                 )}
               </div>
 
-              {/* Explanation Pembahasan */}
+              {/* Explanation Pembahasan with WYSIWYG Editor */}
               <div>
-                <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">Teks Pembahasan (Opsional)</label>
-                <textarea
-                  placeholder="Ketik penjelasan singkat mengenai jawaban yang benar..."
+                <WysiwygEditor
+                  label="Teks Pembahasan (Opsional)"
                   value={newExplanation}
-                  onChange={(e) => setNewExplanation(e.target.value)}
-                  rows={2}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:border-blue-500 resize-none"
+                  onChange={(val) => setNewExplanation(val)}
+                  placeholder="Ketik penjelasan singkat pembahasan di sini (bisa menyisipkan tabel, gambar, atau rumus)..."
+                  rows={3}
                 />
               </div>
 

@@ -216,6 +216,40 @@ export function renderMathContent(str: string): React.ReactNode {
 export default function MathRenderer({ text }: { text: string }) {
   if (!text) return null;
 
+  // Check if string contains HTML tags (like <table>, <img>, <b>, <i>, <ul>, etc.)
+  const hasHtmlTags = /<[a-z][\s\S]*>/i.test(text);
+
+  if (hasHtmlTags) {
+    // Process math expressions inside HTML string
+    const processedHtml = text.replace(/(\$\$?.*?\$\$?)/g, (match) => {
+      const isBlock = match.startsWith('$$') && match.endsWith('$$');
+      const cleanMath = isBlock ? match.slice(2, -2) : match.slice(1, -1);
+      
+      let s = cleanMath;
+      for (const [latex, unicode] of Object.entries(symbolMap)) {
+        s = s.replaceAll(latex, unicode);
+      }
+      s = s.replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, '<span class="inline-flex flex-col items-center justify-center align-middle mx-1 font-sans text-xs"><span class="border-b border-slate-700 dark:border-slate-300 px-1 text-center font-bold">$1</span><span class="text-center font-bold">$2</span></span>');
+      s = s.replace(/\\sqrt\{([^{}]+)\}/g, '<span class="inline-flex items-center align-middle mx-0.5"><span class="text-sm font-light select-none">√</span><span class="border-t border-slate-700 dark:border-slate-300 px-1 font-bold">$1</span></span>');
+      s = s.replace(/\^\{([^{}]+)\}/g, '<sup>$1</sup>');
+      s = s.replace(/\^([0-9a-zA-Z])/g, '<sup>$1</sup>');
+      s = s.replace(/_\{([^{}]+)\}/g, '<sub>$1</sub>');
+      s = s.replace(/_([0-9a-zA-Z])/g, '<sub>$1</sub>');
+
+      if (isBlock) {
+        return `<div class="my-2 text-center overflow-x-auto py-2 px-4 bg-slate-50/40 dark:bg-slate-900/10 rounded-xl border border-slate-100 dark:border-slate-800"><span class="inline-flex items-center">${s}</span></div>`;
+      }
+      return `<span class="inline-flex items-center align-middle mx-1">${s}</span>`;
+    });
+
+    return (
+      <span
+        className="wysiwyg-content leading-relaxed select-text inline-block w-full"
+        dangerouslySetInnerHTML={{ __html: processedHtml }}
+      />
+    );
+  }
+
   // Split content by inline/block math delimiters (e.g. $...$ or $$...$$)
   const parts = text.split(/(\$\$?.*?\$\$?)/g);
 
