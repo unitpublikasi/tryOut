@@ -175,6 +175,26 @@ export const MOCK_QUESTIONS: Question[] = [
     explanation: 'Meticulous means showing great attention to detail; very careful and precise.',
     teacherId: 'u-2',
     schoolLevel: 'SD'
+  },
+  // AKM Table Statement / Matrix True-False Questions
+  {
+    id: 'q-akm-1',
+    type: 'matrix_true_false',
+    text: '<b>Bacalah teks berikut!</b><br/>Udara bersih sangat penting bagi kesehatan. Asap kendaraan bermotor, pembakaran sampah, dan penggunaan bahan bakar berlebihan dapat mencemari udara. Jika dibiarkan terus-menerus, udara kotor dapat menyebabkan gangguan pernapasan dan membuat lingkungan menjadi tidak nyaman. Oleh karena itu, diperlukan kebiasaan hidup yang peduli terhadap kualitas udara.<br/><br/><b>Peristiwa manakah yang berkaitan dengan kehidupan sehari-hari agar tidak mengalami kejadian seperti pada teks tersebut?</b><br/>Tentukan <b>Sesuai</b> atau <b>Tidak Sesuai</b> untuk setiap pernyataan berikut!',
+    options: [],
+    correctAnswer: 0,
+    matrixColumns: ['Sesuai', 'Tidak Sesuai'],
+    matrixRows: [
+      'Raka membakar sampah plastik di halaman rumah.',
+      'Sinta memilih berjalan kaki ke sekolah yang jaraknya dekat.',
+      'Warga menanam pohon di pinggir jalan kampung.'
+    ],
+    matrixCorrectAnswers: [1, 0, 0],
+    category: 'Bahasa Indonesia',
+    difficulty: 'medium',
+    explanation: '1. Raka membakar sampah plastik mencemari udara (Tidak Sesuai). 2. Sinta berjalan kaki menghemat bahan bakar & kurangi polusi (Sesuai). 3. Warga menanam pohon dapat menyaring udara kotor (Sesuai).',
+    teacherId: 'u-2',
+    schoolLevel: 'SMA'
   }
 ];
 

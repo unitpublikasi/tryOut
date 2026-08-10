@@ -17,11 +17,17 @@ export interface User {
   password?: string;
 }
 
+export type QuestionType = 'multiple_choice' | 'matrix_true_false';
+
 export interface Question {
   id: string;
+  type?: QuestionType; // 'multiple_choice' (default) or 'matrix_true_false'
   text: string;
-  options: string[]; // Exactly 4 options for a standard multiple-choice quiz
-  correctAnswer: number; // 0, 1, 2, or 3
+  options: string[]; // Exactly 4 options for standard multiple-choice quiz
+  correctAnswer: number; // 0, 1, 2, or 3 for standard choice
+  matrixColumns?: string[]; // e.g., ['Sesuai', 'Tidak Sesuai'] or ['Benar', 'Salah']
+  matrixRows?: string[]; // Array of statement strings
+  matrixCorrectAnswers?: number[]; // Array of correct column index for each row (e.g. [1, 0, 0])
   category: string;
   difficulty: 'easy' | 'medium' | 'hard';
   explanation: string;
@@ -52,7 +58,7 @@ export interface Submission {
   studentClass: string;
   tryoutId: string;
   tryoutTitle: string;
-  answers: Record<string, number>; // questionId -> selectedOptionIndex
+  answers: Record<string, any>; // questionId -> selectedOptionIndex (number) or matrix answers (number[] / object)
   flagged: string[]; // list of questionIds that are flagged as doubtful
   score: number; // 0 to 100
   correctCount: number;

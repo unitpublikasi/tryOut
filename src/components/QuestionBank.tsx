@@ -20,9 +20,11 @@ import {
   Upload,
   Copy,
   Info,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Table as TableIcon,
+  CheckCircle2
 } from 'lucide-react';
-import { Question, Subject, SchoolLevel } from '../types';
+import { Question, QuestionType, Subject, SchoolLevel } from '../types';
 import MathRenderer from './MathRenderer';
 import WysiwygEditor from './WysiwygEditor';
 
@@ -173,13 +175,55 @@ export default function QuestionBank({
 
   // Form states for new question
   const [newText, setNewText] = useState('');
+  const [newType, setNewType] = useState<QuestionType>('multiple_choice');
   const [newOptions, setNewOptions] = useState<string[]>(['', '', '', '']);
   const [newCorrectAnswer, setNewCorrectAnswer] = useState<number>(0);
+  
+  // Matrix Table Statement fields
+  const [newMatrixColumns, setNewMatrixColumns] = useState<string[]>(['Sesuai', 'Tidak Sesuai']);
+  const [newMatrixRows, setNewMatrixRows] = useState<string[]>([
+    'Raka membakar sampah plastik di halaman rumah.',
+    'Sinta memilih berjalan kaki ke sekolah yang jaraknya dekat.',
+    'Warga menanam pohon di pinggir jalan kampung.'
+  ]);
+  const [newMatrixCorrectAnswers, setNewMatrixCorrectAnswers] = useState<number[]>([1, 0, 0]);
+
   const [newCategory, setNewCategory] = useState('');
   const [newDifficulty, setNewDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [newSchoolLevel, setNewSchoolLevel] = useState('SMA');
   const [newExplanation, setNewExplanation] = useState('');
   const [newImageUrl, setNewImageUrl] = useState('');
+
+  // Matrix Rows Helper functions
+  const handleAddMatrixRow = () => {
+    setNewMatrixRows((prev) => [...prev, 'Pernyataan baru...']);
+    setNewMatrixCorrectAnswers((prev) => [...prev, 0]);
+  };
+
+  const handleRemoveMatrixRow = (index: number) => {
+    if (newMatrixRows.length <= 1) {
+      alert('Tabel minimal memiliki 1 baris pernyataan!');
+      return;
+    }
+    setNewMatrixRows((prev) => prev.filter((_, i) => i !== index));
+    setNewMatrixCorrectAnswers((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleMatrixRowChange = (index: number, val: string) => {
+    setNewMatrixRows((prev) => {
+      const copy = [...prev];
+      copy[index] = val;
+      return copy;
+    });
+  };
+
+  const handleMatrixCorrectChange = (rowIndex: number, colIndex: number) => {
+    setNewMatrixCorrectAnswers((prev) => {
+      const copy = [...prev];
+      copy[rowIndex] = colIndex;
+      return copy;
+    });
+  };
 
   // Sync default category from dynamic subjects list
   React.useEffect(() => {
@@ -216,16 +260,30 @@ export default function QuestionBank({
 
   const handleCreateQuestion = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newText.trim() || newOptions.some((o) => !o.trim())) {
-      alert('Mohon isi teks soal dan keempat pilihan jawaban!');
+    if (!newText.trim()) {
+      alert('Mohon ketik teks pertanyaan!');
+      return;
+    }
+
+    if (newType === 'multiple_choice' && newOptions.some((o) => !o.trim())) {
+      alert('Mohon isi keempat pilihan jawaban!');
+      return;
+    }
+
+    if (newType === 'matrix_true_false' && (newMatrixRows.length === 0 || newMatrixRows.some((r) => !r.trim()))) {
+      alert('Mohon isi seluruh teks baris pernyataan pada tabel!');
       return;
     }
 
     const created: Question = {
       id: `q-${Date.now()}`,
+      type: newType,
       text: newText,
-      options: newOptions,
-      correctAnswer: newCorrectAnswer,
+      options: newType === 'multiple_choice' ? newOptions : [],
+      correctAnswer: newType === 'multiple_choice' ? newCorrectAnswer : 0,
+      matrixColumns: newType === 'matrix_true_false' ? newMatrixColumns : undefined,
+      matrixRows: newType === 'matrix_true_false' ? newMatrixRows : undefined,
+      matrixCorrectAnswers: newType === 'matrix_true_false' ? newMatrixCorrectAnswers : undefined,
       category: newCategory,
       difficulty: newDifficulty,
       explanation: newExplanation || 'Tidak ada penjelasan tambahan.',
@@ -239,6 +297,7 @@ export default function QuestionBank({
 
     // Reset Form
     setNewText('');
+    setNewType('multiple_choice');
     setNewOptions(['', '', '', '']);
     setNewCorrectAnswer(0);
     setNewExplanation('');
@@ -590,6 +649,16 @@ export default function QuestionBank({
                   <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 font-mono">
                     {q.category.toUpperCase()}
                   </span>
+                  {q.type === 'matrix_true_false' ? (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-300 font-mono uppercase flex items-center gap-1">
+                      <TableIcon className="w-3 h-3 inline" />
+                      <span>Tabel Pernyataan</span>
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 font-mono uppercase">
+                      Pilihan Ganda
+                    </span>
+                  )}
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg uppercase ${
                     q.difficulty === 'easy' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600' :
                     q.difficulty === 'medium' ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-500' :
@@ -634,30 +703,74 @@ export default function QuestionBank({
                 </div>
               )}
 
-              {/* Options list */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 font-mono text-xs">
-                {q.options.map((opt, oIdx) => {
-                  const isCorrect = q.correctAnswer === oIdx;
-                  return (
-                    <div
-                      key={oIdx}
-                      className={`p-3 rounded-xl border flex items-center gap-3 ${
-                        isCorrect
-                          ? 'bg-emerald-50/75 dark:bg-emerald-950/20 border-emerald-500/50 text-emerald-900 dark:text-emerald-300'
-                          : 'bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-800/80 text-slate-600 dark:text-slate-400'
-                      }`}
-                    >
-                      <span className={`w-5 h-5 rounded-md flex items-center justify-center font-bold text-[10px] shrink-0 ${
-                        isCorrect ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-700'
-                      }`}>
-                        {String.fromCharCode(65 + oIdx)}
-                      </span>
-                      <span className="truncate whitespace-normal"><MathRenderer text={opt} /></span>
-                      {isCorrect && <Check className="w-3.5 h-3.5 text-emerald-500 ml-auto shrink-0" />}
-                    </div>
-                  );
-                })}
-              </div>
+              {/* Options or Matrix Table list */}
+              {q.type === 'matrix_true_false' && q.matrixRows ? (
+                <div className="mb-4 overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold">
+                      <tr>
+                        <th className="p-3 border-b border-r border-slate-200 dark:border-slate-800">Pernyataan</th>
+                        {(q.matrixColumns || ['Sesuai', 'Tidak Sesuai']).map((col, cIdx) => (
+                          <th key={cIdx} className="p-3 border-b border-r border-slate-200 dark:border-slate-800 text-center w-32">
+                            {col}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                      {q.matrixRows.map((rowText, rIdx) => {
+                        const correctColIdx = q.matrixCorrectAnswers ? q.matrixCorrectAnswers[rIdx] : 0;
+                        return (
+                          <tr key={rIdx} className="bg-white dark:bg-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                            <td className="p-3 border-r border-slate-200 dark:border-slate-800 font-medium text-slate-800 dark:text-slate-200">
+                              <MathRenderer text={rowText} />
+                            </td>
+                            {(q.matrixColumns || ['Sesuai', 'Tidak Sesuai']).map((_, cIdx) => {
+                              const isKey = correctColIdx === cIdx;
+                              return (
+                                <td key={cIdx} className="p-3 border-r border-slate-200 dark:border-slate-800 text-center">
+                                  {isKey ? (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold text-[10px]">
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                                      <span>Kunci</span>
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
+                                  )}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 font-mono text-xs">
+                  {q.options.map((opt, oIdx) => {
+                    const isCorrect = q.correctAnswer === oIdx;
+                    return (
+                      <div
+                        key={oIdx}
+                        className={`p-3 rounded-xl border flex items-center gap-3 ${
+                          isCorrect
+                            ? 'bg-emerald-50/75 dark:bg-emerald-950/20 border-emerald-500/50 text-emerald-900 dark:text-emerald-300'
+                            : 'bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-800/80 text-slate-600 dark:text-slate-400'
+                        }`}
+                      >
+                        <span className={`w-5 h-5 rounded-md flex items-center justify-center font-bold text-[10px] shrink-0 ${
+                          isCorrect ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-700'
+                        }`}>
+                          {String.fromCharCode(65 + oIdx)}
+                        </span>
+                        <span className="truncate whitespace-normal"><MathRenderer text={opt} /></span>
+                        {isCorrect && <Check className="w-3.5 h-3.5 text-emerald-500 ml-auto shrink-0" />}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
               {/* Explanation Pembahasan Section */}
               {q.explanation && (
@@ -700,6 +813,40 @@ export default function QuestionBank({
 
             {/* Modal Form */}
             <form onSubmit={handleCreateQuestion} className="space-y-5">
+              {/* Jenis Soal Selection (Pilihan Ganda vs Tabel Pernyataan Sesuai/Tidak Sesuai) */}
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/60 dark:border-slate-700 space-y-3">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  Pilih Format Jenis Soal
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setNewType('multiple_choice')}
+                    className={`p-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                      newType === 'multiple_choice'
+                        ? 'bg-blue-600 border-blue-600 text-white shadow-md'
+                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                    }`}
+                  >
+                    <BookOpen className="w-4 h-4" />
+                    <span>Pilihan Ganda (A-D)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setNewType('matrix_true_false')}
+                    className={`p-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                      newType === 'matrix_true_false'
+                        ? 'bg-purple-600 border-purple-600 text-white shadow-md'
+                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                    }`}
+                  >
+                    <TableIcon className="w-4 h-4" />
+                    <span>Tabel Pernyataan (Sesuai/Tidak Sesuai)</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Category, Difficulty & School Level Selection */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
@@ -756,40 +903,180 @@ export default function QuestionBank({
                   label="Isi Teks Pertanyaan (Mendukung Tabel & Gambar)"
                   value={newText}
                   onChange={(val) => setNewText(val)}
-                  placeholder="Ketik teks pertanyaan di sini atau gunakan toolbar di atas untuk menyisipkan tabel, gambar, dan rumus..."
+                  placeholder="Ketik teks pertanyaan / instruksi di sini..."
                   rows={4}
                 />
               </div>
 
-              {/* Options inputs */}
-              <div className="space-y-3.5">
-                <span className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase">Pilihan Jawaban (A-D) & Kunci</span>
-                {newOptions.map((opt, oIdx) => (
-                  <div key={oIdx} className="flex items-center gap-3">
-                    {/* Option letter label / correct selection trigger */}
+              {/* Dynamic Answer Section: Multiple Choice vs Matrix Table */}
+              {newType === 'multiple_choice' ? (
+                /* Options inputs */
+                <div className="space-y-3.5">
+                  <span className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase">Pilihan Jawaban (A-D) & Kunci</span>
+                  {newOptions.map((opt, oIdx) => (
+                    <div key={oIdx} className="flex items-center gap-3">
+                      {/* Option letter label / correct selection trigger */}
+                      <button
+                        type="button"
+                        onClick={() => setNewCorrectAnswer(oIdx)}
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm border shrink-0 transition-all ${
+                          newCorrectAnswer === oIdx
+                            ? 'bg-emerald-500 border-emerald-600 text-white shadow-md'
+                            : 'bg-slate-100 border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-500 hover:bg-slate-200'
+                        }`}
+                        title="Set as Correct Answer"
+                      >
+                        {String.fromCharCode(65 + oIdx)}
+                      </button>
+                      <input
+                        type="text"
+                        required
+                        placeholder={`Isi pilihan jawaban ${String.fromCharCode(65 + oIdx)}`}
+                        value={opt}
+                        onChange={(e) => handleOptionChange(oIdx, e.target.value)}
+                        className="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                /* Matrix Table Statement Builder */
+                <div className="space-y-4 p-4 bg-purple-50/40 dark:bg-purple-950/20 rounded-2xl border border-purple-200 dark:border-purple-900/40">
+                  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-purple-200/60 dark:border-purple-900/40 pb-3">
+                    <div>
+                      <span className="block text-xs font-bold text-purple-900 dark:text-purple-200 uppercase tracking-wider font-mono">
+                        Pengaturan Kolom & Baris Pernyataan Tabel
+                      </span>
+                      <p className="text-[10px] text-purple-600 dark:text-purple-400 mt-0.5">
+                        Tentukan teks label kolom (misal: Sesuai / Tidak Sesuai), daftar baris pernyataan, dan pilih Kunci Jawaban.
+                      </p>
+                    </div>
+
+                    {/* Column Header Presets */}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setNewMatrixColumns(['Sesuai', 'Tidak Sesuai'])}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-all ${
+                          newMatrixColumns[0] === 'Sesuai'
+                            ? 'bg-purple-600 text-white border-purple-600'
+                            : 'bg-white dark:bg-slate-800 text-slate-600 border-slate-200'
+                        }`}
+                      >
+                        Sesuai / Tidak Sesuai
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNewMatrixColumns(['Benar', 'Salah'])}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-all ${
+                          newMatrixColumns[0] === 'Benar'
+                            ? 'bg-purple-600 text-white border-purple-600'
+                            : 'bg-white dark:bg-slate-800 text-slate-600 border-slate-200'
+                        }`}
+                      >
+                        Benar / Salah
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Header Columns Inputs */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Label Kolom 1 (Kiri)</label>
+                      <input
+                        type="text"
+                        required
+                        value={newMatrixColumns[0] || 'Sesuai'}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setNewMatrixColumns((prev) => [val, prev[1] || 'Tidak Sesuai']);
+                        }}
+                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Label Kolom 2 (Kanan)</label>
+                      <input
+                        type="text"
+                        required
+                        value={newMatrixColumns[1] || 'Tidak Sesuai'}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setNewMatrixColumns((prev) => [prev[0] || 'Sesuai', val]);
+                        }}
+                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Statement Rows Builder */}
+                  <div className="space-y-3 pt-2">
+                    <span className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                      Daftar Pernyataan & Kunci Jawaban
+                    </span>
+
+                    {newMatrixRows.map((rowText, rIdx) => {
+                      const selectedCol = newMatrixCorrectAnswers[rIdx] ?? 0;
+                      return (
+                        <div key={rIdx} className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-purple-100 dark:border-slate-800 space-y-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs font-bold font-mono text-purple-600 dark:text-purple-400">
+                              Pernyataan #{rIdx + 1}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveMatrixRow(rIdx)}
+                              className="text-slate-400 hover:text-red-500 p-1"
+                              title="Hapus Pernyataan"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          <input
+                            type="text"
+                            required
+                            placeholder="Ketik kalimat pernyataan di sini..."
+                            value={rowText}
+                            onChange={(e) => handleMatrixRowChange(rIdx, e.target.value)}
+                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium focus:outline-none focus:border-purple-500"
+                          />
+
+                          {/* Kunci Jawaban per baris */}
+                          <div className="flex items-center gap-2 pt-1">
+                            <span className="text-[10px] text-slate-400 font-bold uppercase">Kunci:</span>
+                            <div className="flex items-center gap-2">
+                              {newMatrixColumns.map((colLabel, cIdx) => (
+                                <button
+                                  type="button"
+                                  key={cIdx}
+                                  onClick={() => handleMatrixCorrectChange(rIdx, cIdx)}
+                                  className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all ${
+                                    selectedCol === cIdx
+                                      ? 'bg-emerald-500 text-white border-emerald-600 shadow-sm'
+                                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                                  }`}
+                                >
+                                  {selectedCol === cIdx && '✓ '}{colLabel}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+
                     <button
                       type="button"
-                      onClick={() => setNewCorrectAnswer(oIdx)}
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm border shrink-0 transition-all ${
-                        newCorrectAnswer === oIdx
-                          ? 'bg-emerald-500 border-emerald-600 text-white shadow-md'
-                          : 'bg-slate-100 border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-500 hover:bg-slate-200'
-                      }`}
-                      title="Set as Correct Answer"
+                      onClick={handleAddMatrixRow}
+                      className="w-full py-2.5 rounded-xl border border-dashed border-purple-300 dark:border-purple-800/60 text-purple-600 dark:text-purple-400 hover:bg-purple-50/50 text-xs font-bold transition-all flex items-center justify-center gap-1.5"
                     >
-                      {String.fromCharCode(65 + oIdx)}
+                      <Plus className="w-4 h-4" />
+                      <span>+ Tambah Pernyataan Baru</span>
                     </button>
-                    <input
-                      type="text"
-                      required
-                      placeholder={`Isi pilihan jawaban ${String.fromCharCode(65 + oIdx)}`}
-                      value={opt}
-                      onChange={(e) => handleOptionChange(oIdx, e.target.value)}
-                      className="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:border-blue-500"
-                    />
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
 
               {/* Optional Image Upload / URL Illustration */}
               <div className="space-y-2 bg-slate-50 dark:bg-slate-850 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-750">
