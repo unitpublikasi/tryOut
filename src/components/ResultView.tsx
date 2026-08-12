@@ -117,9 +117,17 @@ export default function ResultView({ submission, tryout, onClose }: ResultViewPr
 
         <div className="space-y-5">
           {tryout.questions.map((q, idx) => {
-            const selectedIdx = submission.answers[q.id];
-            const isCorrect = selectedIdx === q.correctAnswer;
-            const hasAnswered = selectedIdx !== undefined;
+            const studentAns = submission.answers[q.id];
+            let isCorrect = false;
+            let hasAnswered = studentAns !== undefined;
+
+            if (q.type === 'matrix_true_false' && q.matrixCorrectAnswers) {
+              if (Array.isArray(studentAns) && studentAns.length === q.matrixCorrectAnswers.length) {
+                isCorrect = q.matrixCorrectAnswers.every((correctAns, rIdx) => studentAns[rIdx] === correctAns);
+              }
+            } else {
+              isCorrect = studentAns === q.correctAnswer;
+            }
 
             return (
               <div
@@ -158,36 +166,93 @@ export default function ResultView({ submission, tryout, onClose }: ResultViewPr
                   </div>
                 )}
 
-                {/* Display options highlighting student's choice and the correct one */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  {q.options.map((opt, oIdx) => {
-                    const isKeyCorrect = q.correctAnswer === oIdx;
-                    const isStudentSelected = selectedIdx === oIdx;
+                {/* Display options or matrix table */}
+                {q.type === 'matrix_true_false' && q.matrixRows ? (
+                  <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 text-xs">
+                    <table className="w-full text-left">
+                      <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold">
+                        <tr>
+                          <th className="p-3 border-b border-r border-slate-200 dark:border-slate-800">Pernyataan</th>
+                          {(q.matrixColumns || ['Sesuai', 'Tidak Sesuai']).map((col, cIdx) => (
+                            <th key={cIdx} className="p-3 border-b border-r border-slate-200 dark:border-slate-800 text-center w-28">
+                              {col}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                        {q.matrixRows.map((rowText, rIdx) => {
+                          const keyColIdx = q.matrixCorrectAnswers ? q.matrixCorrectAnswers[rIdx] : 0;
+                          const studentSelectedCol = Array.isArray(studentAns) ? studentAns[rIdx] : undefined;
 
-                    let cardStyle = 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/30';
-                    let badgeStyle = 'bg-slate-200 text-slate-600 dark:bg-slate-700';
+                          return (
+                            <tr key={rIdx} className="bg-slate-50/50 dark:bg-slate-900/50">
+                              <td className="p-3 border-r border-slate-200 dark:border-slate-800 font-medium text-slate-800 dark:text-slate-200">
+                                <MathRenderer text={rowText} />
+                              </td>
+                              {(q.matrixColumns || ['Sesuai', 'Tidak Sesuai']).map((colLabel, cIdx) => {
+                                const isKey = keyColIdx === cIdx;
+                                const isUserChoice = studentSelectedCol === cIdx;
 
-                    if (isKeyCorrect) {
-                      cardStyle = 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-300';
-                      badgeStyle = 'bg-emerald-500 text-white';
-                    } else if (isStudentSelected && !isCorrect) {
-                      cardStyle = 'border-red-400 bg-red-50/50 dark:bg-red-950/20 text-red-900 dark:text-red-300';
-                      badgeStyle = 'bg-red-500 text-white';
-                    }
+                                let badgeColor = 'bg-slate-100 dark:bg-slate-800 text-slate-400';
+                                let textLabel = '-';
 
-                    return (
-                      <div
-                        key={oIdx}
-                        className={`p-3.5 rounded-xl border flex items-center gap-3 font-mono ${cardStyle}`}
-                      >
-                        <span className={`w-5.5 h-5.5 rounded-md flex items-center justify-center font-bold text-[10px] shrink-0 ${badgeStyle}`}>
-                          {String.fromCharCode(65 + oIdx)}
-                        </span>
-                        <span className="truncate whitespace-normal"><MathRenderer text={opt} /></span>
-                      </div>
-                    );
-                  })}
-                </div>
+                                if (isKey && isUserChoice) {
+                                  badgeColor = 'bg-emerald-500 text-white font-bold';
+                                  textLabel = '✓ Benar';
+                                } else if (isKey && !isUserChoice) {
+                                  badgeColor = 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-bold';
+                                  textLabel = 'Kunci';
+                                } else if (!isKey && isUserChoice) {
+                                  badgeColor = 'bg-red-500 text-white font-bold';
+                                  textLabel = '✗ Pilihanmu';
+                                }
+
+                                return (
+                                  <td key={cIdx} className="p-2.5 border-r border-slate-200 dark:border-slate-800 text-center">
+                                    <span className={`px-2.5 py-1 rounded-lg text-[10px] inline-block ${badgeColor}`}>
+                                      {textLabel}
+                                    </span>
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    {q.options.map((opt, oIdx) => {
+                      const isKeyCorrect = q.correctAnswer === oIdx;
+                      const isStudentSelected = studentAns === oIdx;
+
+                      let cardStyle = 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/30';
+                      let badgeStyle = 'bg-slate-200 text-slate-600 dark:bg-slate-700';
+
+                      if (isKeyCorrect) {
+                        cardStyle = 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-300';
+                        badgeStyle = 'bg-emerald-500 text-white';
+                      } else if (isStudentSelected && !isCorrect) {
+                        cardStyle = 'border-red-400 bg-red-50/50 dark:bg-red-950/20 text-red-900 dark:text-red-300';
+                        badgeStyle = 'bg-red-500 text-white';
+                      }
+
+                      return (
+                        <div
+                          key={oIdx}
+                          className={`p-3.5 rounded-xl border flex items-center gap-3 font-mono ${cardStyle}`}
+                        >
+                          <span className={`w-5.5 h-5.5 rounded-md flex items-center justify-center font-bold text-[10px] shrink-0 ${badgeStyle}`}>
+                            {String.fromCharCode(65 + oIdx)}
+                          </span>
+                          <span className="truncate whitespace-normal"><MathRenderer text={opt} /></span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {/* Pembahasan Box */}
                 {q.explanation && (

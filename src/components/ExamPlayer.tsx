@@ -107,6 +107,14 @@ export default function ExamPlayer({
       const selected = answers[q.id];
       if (selected === undefined) {
         unanswered++;
+      } else if (q.type === 'matrix_true_false' && q.matrixCorrectAnswers) {
+        if (Array.isArray(selected) && selected.length === q.matrixCorrectAnswers.length && !selected.includes(-1)) {
+          const isAllCorrect = q.matrixCorrectAnswers.every((correctAns, rIdx) => selected[rIdx] === correctAns);
+          if (isAllCorrect) correct++;
+          else wrong++;
+        } else {
+          unanswered++;
+        }
       } else if (selected === q.correctAnswer) {
         correct++;
       } else {
@@ -213,35 +221,88 @@ export default function ExamPlayer({
             </div>
           )}
 
-          {/* Options Grid */}
-          <div id="options-grid" className="space-y-4">
-            {currentQuestion.options.map((option, oIdx) => {
-              const optionLetter = String.fromCharCode(65 + oIdx); // A, B, C, D
-              const isSelected = answers[currentQuestion.id] === oIdx;
+          {/* Options Grid or Matrix Table */}
+          {currentQuestion.type === 'matrix_true_false' && currentQuestion.matrixRows ? (
+            <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold">
+                  <tr>
+                    <th className="p-4 border-b border-r border-slate-200 dark:border-slate-800">Pernyataan</th>
+                    {(currentQuestion.matrixColumns || ['Sesuai', 'Tidak Sesuai']).map((col, cIdx) => (
+                      <th key={cIdx} className="p-4 border-b border-r border-slate-200 dark:border-slate-800 text-center w-36 sm:w-44">
+                        {col}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900">
+                  {currentQuestion.matrixRows.map((rowText, rIdx) => {
+                    const studentAns = Array.isArray(answers[currentQuestion.id]) ? answers[currentQuestion.id] : [];
+                    const selectedCol = studentAns[rIdx];
 
-              return (
-                <button
-                  key={oIdx}
-                  id={`option-button-${currentQuestion.id}-${oIdx}`}
-                  onClick={() => handleSelectOption(currentQuestion.id, oIdx)}
-                  className={`w-full flex items-start gap-4 p-5 rounded-2xl border text-left transition-all duration-200 active:scale-[0.99] group ${
-                    isSelected
-                      ? 'bg-blue-50/75 dark:bg-blue-950/25 border-blue-500 text-blue-900 dark:text-blue-100 shadow-md shadow-blue-500/5'
-                      : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-700 dark:text-slate-300'
-                  }`}
-                >
-                  <span className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 transition-all ${
-                    isSelected
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 group-hover:text-slate-700'
-                  }`}>
-                    {optionLetter}
-                  </span>
-                  <span className="pt-1.5 text-sm md:text-base font-medium"><MathRenderer text={option} /></span>
-                </button>
-              );
-            })}
-          </div>
+                    return (
+                      <tr key={rIdx} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                        <td className="p-4 border-r border-slate-200 dark:border-slate-800 font-medium text-slate-800 dark:text-slate-200">
+                          <MathRenderer text={rowText} />
+                        </td>
+                        {(currentQuestion.matrixColumns || ['Sesuai', 'Tidak Sesuai']).map((colLabel, cIdx) => {
+                          const isChecked = selectedCol === cIdx;
+                          return (
+                            <td key={cIdx} className="p-4 border-r border-slate-200 dark:border-slate-800 text-center">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updated = Array.isArray(answers[currentQuestion.id]) ? [...answers[currentQuestion.id]] : [];
+                                  updated[rIdx] = cIdx;
+                                  setAnswers(prev => ({ ...prev, [currentQuestion.id]: updated }));
+                                }}
+                                className={`w-full py-2.5 px-3 rounded-xl font-bold text-xs border transition-all ${
+                                  isChecked
+                                    ? 'bg-blue-600 text-white border-blue-600 shadow-md scale-105'
+                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                }`}
+                              >
+                                {isChecked ? `✓ ${colLabel}` : colLabel}
+                              </button>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div id="options-grid" className="space-y-4">
+              {currentQuestion.options.map((option, oIdx) => {
+                const optionLetter = String.fromCharCode(65 + oIdx); // A, B, C, D
+                const isSelected = answers[currentQuestion.id] === oIdx;
+
+                return (
+                  <button
+                    key={oIdx}
+                    id={`option-button-${currentQuestion.id}-${oIdx}`}
+                    onClick={() => handleSelectOption(currentQuestion.id, oIdx)}
+                    className={`w-full flex items-start gap-4 p-5 rounded-2xl border text-left transition-all duration-200 active:scale-[0.99] group ${
+                      isSelected
+                        ? 'bg-blue-50/75 dark:bg-blue-950/25 border-blue-500 text-blue-900 dark:text-blue-100 shadow-md shadow-blue-500/5'
+                        : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-700 dark:text-slate-300'
+                    }`}
+                  >
+                    <span className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 transition-all ${
+                      isSelected
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 group-hover:text-slate-700'
+                    }`}>
+                      {optionLetter}
+                    </span>
+                    <span className="pt-1.5 text-sm md:text-base font-medium"><MathRenderer text={option} /></span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Action Controls */}
