@@ -20,7 +20,9 @@ import {
   User as UserIcon,
   BookOpen,
   Eye,
-  EyeOff
+  EyeOff,
+  Lock,
+  School
 } from 'lucide-react';
 import { User, UserRole } from '../types';
 
@@ -44,6 +46,7 @@ export default function UserManagement({
   // States
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRoleFilter, setSelectedRoleFilter] = useState<'all' | UserRole>('all');
+  const [selectedLevelFilter, setSelectedLevelFilter] = useState<'all' | 'SD' | 'SMP' | 'SMA'>('all');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
@@ -53,6 +56,7 @@ export default function UserManagement({
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<UserRole>('siswa');
+  const [schoolLevel, setSchoolLevel] = useState<string>('SMA');
   const [schoolClass, setSchoolClass] = useState('XII-MIPA-1');
   const [schoolName, setSchoolName] = useState('SMA Negeri 1 Jakarta');
   const [showPassword, setShowPassword] = useState(false);
@@ -65,6 +69,7 @@ export default function UserManagement({
     setFullName('');
     setEmail('');
     setRole('siswa');
+    setSchoolLevel('SMA');
     setSchoolClass('XII-MIPA-1');
     setSchoolName('SMA Negeri 1 Jakarta');
     setShowPassword(false);
@@ -79,6 +84,7 @@ export default function UserManagement({
     setFullName(user.fullName);
     setEmail(user.email);
     setRole(user.role);
+    setSchoolLevel(user.schoolLevel || 'SMA');
     setSchoolClass(user.schoolClass || 'XII-MIPA-1');
     setSchoolName(user.schoolName || 'SMA Negeri 1 Jakarta');
     setShowPassword(false);
@@ -115,6 +121,7 @@ export default function UserManagement({
         fullName: fullName.trim(),
         email: email.trim(),
         role,
+        schoolLevel,
         schoolClass: role === 'siswa' ? schoolClass : undefined,
         schoolName: schoolName.trim(),
       };
@@ -137,12 +144,13 @@ export default function UserManagement({
         fullName: fullName.trim(),
         email: email.trim(),
         role,
+        schoolLevel,
         schoolClass: role === 'siswa' ? schoolClass : undefined,
         schoolName: schoolName.trim(),
         avatar: avatarUrl,
       };
       onAddUser(newUser);
-      onToast(`User baru ${newUser.fullName} (${newUser.role.toUpperCase()}) berhasil dibuat!`, 'success');
+      onToast(`User baru ${newUser.fullName} (${newUser.role.toUpperCase()} - ${schoolLevel}) berhasil dibuat!`, 'success');
     }
 
     setIsFormOpen(false);
@@ -167,11 +175,13 @@ export default function UserManagement({
       user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (user.schoolClass && user.schoolClass.toLowerCase().includes(searchTerm.toLowerCase()));
+      (user.schoolClass && user.schoolClass.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (user.schoolLevel && user.schoolLevel.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesRole = selectedRoleFilter === 'all' || user.role === selectedRoleFilter;
+    const matchesLevel = selectedLevelFilter === 'all' || user.schoolLevel === selectedLevelFilter;
 
-    return matchesSearch && matchesRole;
+    return matchesSearch && matchesRole && matchesLevel;
   });
 
   // Get Badge Color
@@ -241,14 +251,14 @@ export default function UserManagement({
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           </div>
 
-          <div className="flex items-center gap-2 self-stretch md:self-auto overflow-x-auto pb-1 md:pb-0">
+          <div className="flex flex-wrap items-center gap-2 self-stretch md:self-auto overflow-x-auto pb-1 md:pb-0">
             <span className="text-xs text-slate-400 font-bold uppercase tracking-wider font-mono shrink-0 mr-1 flex items-center gap-1">
               <Filter className="w-3.5 h-3.5" />
-              Filter:
+              Role:
             </span>
             <button
               onClick={() => setSelectedRoleFilter('all')}
-              className={`px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all shrink-0 ${
+              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all shrink-0 ${
                 selectedRoleFilter === 'all'
                   ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700'
                   : 'text-slate-500 hover:text-slate-950 dark:hover:text-white'
@@ -258,17 +268,17 @@ export default function UserManagement({
             </button>
             <button
               onClick={() => setSelectedRoleFilter('admin')}
-              className={`px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all shrink-0 ${
+              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all shrink-0 ${
                 selectedRoleFilter === 'admin'
                   ? 'bg-red-50 text-red-700 dark:bg-red-950/20 dark:text-red-400 border border-red-100 dark:border-red-900/30'
                   : 'text-slate-500 hover:text-red-600'
               }`}
             >
-              Administrator ({users.filter((u) => u.role === 'admin').length})
+              Admin ({users.filter((u) => u.role === 'admin').length})
             </button>
             <button
               onClick={() => setSelectedRoleFilter('guru')}
-              className={`px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all shrink-0 ${
+              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all shrink-0 ${
                 selectedRoleFilter === 'guru'
                   ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/20 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/30'
                   : 'text-slate-500 hover:text-indigo-600'
@@ -278,7 +288,7 @@ export default function UserManagement({
             </button>
             <button
               onClick={() => setSelectedRoleFilter('siswa')}
-              className={`px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all shrink-0 ${
+              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all shrink-0 ${
                 selectedRoleFilter === 'siswa'
                   ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30'
                   : 'text-slate-500 hover:text-emerald-600'
@@ -286,6 +296,35 @@ export default function UserManagement({
             >
               Siswa ({users.filter((u) => u.role === 'siswa').length})
             </button>
+
+            <span className="text-slate-300 dark:text-slate-700 font-bold px-1">|</span>
+
+            <span className="text-xs text-slate-400 font-bold uppercase tracking-wider font-mono shrink-0 mr-1">
+              Jenjang:
+            </span>
+            <button
+              onClick={() => setSelectedLevelFilter('all')}
+              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all shrink-0 ${
+                selectedLevelFilter === 'all'
+                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700'
+                  : 'text-slate-500 hover:text-slate-950 dark:hover:text-white'
+              }`}
+            >
+              Semua
+            </button>
+            {['SD', 'SMP', 'SMA'].map((lvl) => (
+              <button
+                key={lvl}
+                onClick={() => setSelectedLevelFilter(lvl as any)}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all shrink-0 ${
+                  selectedLevelFilter === lvl
+                    ? 'bg-blue-600 text-white font-bold shadow-sm'
+                    : 'text-slate-500 hover:text-blue-600'
+                }`}
+              >
+                {lvl} ({users.filter((u) => u.schoolLevel === lvl).length})
+              </button>
+            ))}
           </div>
         </div>
 
@@ -298,7 +337,8 @@ export default function UserManagement({
                   <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider font-mono">Pengguna</th>
                   <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider font-mono">Username</th>
                   <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider font-mono">Peran (Role)</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider font-mono">Detail Tambahan</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider font-mono">Jenjang</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider font-mono">Detail Kelas & Sekolah</th>
                   <th className="px-6 py-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider font-mono text-right">Aksi</th>
                 </tr>
               </thead>
@@ -344,6 +384,19 @@ export default function UserManagement({
                         {getRoleBadge(user.role)}
                       </td>
 
+                      {/* School Level Badge */}
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${
+                          user.schoolLevel === 'SD'
+                            ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300'
+                            : user.schoolLevel === 'SMP'
+                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300'
+                            : 'bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300'
+                        }`}>
+                          {user.schoolLevel || 'SMA'}
+                        </span>
+                      </td>
+
                       {/* School/Class Details */}
                       <td className="px-6 py-4">
                         <div className="flex flex-col text-xs">
@@ -356,7 +409,7 @@ export default function UserManagement({
                             </>
                           ) : (
                             <span className="text-slate-500 dark:text-slate-400">
-                              {user.schoolName || 'SMA Negeri 1 Jakarta'}
+                              {user.schoolName || 'Sekolah'}
                             </span>
                           )}
                         </div>
@@ -503,37 +556,55 @@ export default function UserManagement({
                 </div>
               </div>
 
-              {/* Role & Class Choice */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* Role, School Level & Class Choice */}
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">
-                    Peran / Hak Akses (Role)
+                    Peran (Role)
                   </label>
                   <select
                     value={role}
                     onChange={(e) => setRole(e.target.value as UserRole)}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:border-blue-500"
+                    className="w-full px-2.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:border-blue-500"
                   >
-                    <option value="siswa">Siswa (Student)</option>
-                    <option value="guru">Guru (Teacher)</option>
-                    <option value="admin">Administrator</option>
+                    <option value="siswa">Siswa</option>
+                    <option value="guru">Guru</option>
+                    <option value="admin">Admin</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">
-                    Kelas Akademik <span className="text-slate-400 font-normal">(Hanya Siswa)</span>
+                    Jenjang Level
+                  </label>
+                  <select
+                    value={schoolLevel}
+                    onChange={(e) => setSchoolLevel(e.target.value)}
+                    className="w-full px-2.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:border-blue-500 font-bold text-blue-600 dark:text-blue-400"
+                  >
+                    <option value="SD">SD (Sekolah Dasar)</option>
+                    <option value="SMP">SMP (Sekolah Menengah Pertama)</option>
+                    <option value="SMA">SMA / SMK (Sekolah Menengah Atas)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">
+                    Kelas <span className="text-slate-400 font-normal">(Siswa)</span>
                   </label>
                   <select
                     disabled={role !== 'siswa'}
                     value={schoolClass}
                     onChange={(e) => setSchoolClass(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:border-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full px-2.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:border-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
+                    <option value="Kelas 5 SD">Kelas 5 SD</option>
+                    <option value="Kelas 6 SD">Kelas 6 SD</option>
+                    <option value="VIII SMP">VIII SMP</option>
+                    <option value="IX SMP">IX SMP</option>
                     <option value="XII-MIPA-1">XII MIPA 1</option>
                     <option value="XII-MIPA-2">XII MIPA 2</option>
                     <option value="XII-IIS-1">XII IIS 1</option>
-                    <option value="XII-IIS-2">XII IIS 2</option>
                   </select>
                 </div>
               </div>

@@ -68,6 +68,7 @@ export default function Dashboard({
   const [duration, setDuration] = useState<number>(30);
   const [passingGrade, setPassingGrade] = useState<number>(75);
   const [category, setCategory] = useState('Matematika');
+  const [tryoutSchoolLevel, setTryoutSchoolLevel] = useState<'SD' | 'SMP' | 'SMA'>('SD');
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
 
   // Editing tryout pointer (null if creating, Tryout object if editing)
@@ -95,6 +96,7 @@ export default function Dashboard({
     setDuration(30);
     setPassingGrade(75);
     setCategory('Matematika');
+    setTryoutSchoolLevel('SD');
     setSelectedQuestionIds([]);
     setModalCategoryFilter('Matematika');
     setModalSearchTerm('');
@@ -109,6 +111,7 @@ export default function Dashboard({
     setDuration(t.durationMinutes);
     setPassingGrade(t.passingGrade);
     setCategory(t.category);
+    setTryoutSchoolLevel((t.schoolLevel as any) || 'SD');
     setSelectedQuestionIds(t.questions.map((q) => q.id));
     setModalCategoryFilter(t.category);
     setModalSearchTerm('');
@@ -184,6 +187,7 @@ export default function Dashboard({
         durationMinutes: Number(duration),
         passingGrade: Number(passingGrade),
         category,
+        schoolLevel: tryoutSchoolLevel,
         questions: compiledQuestions,
       };
       onUpdateTryout(updatedTryout);
@@ -197,6 +201,7 @@ export default function Dashboard({
         durationMinutes: Number(duration),
         passingGrade: Number(passingGrade),
         category,
+        schoolLevel: tryoutSchoolLevel,
         questions: compiledQuestions,
         startDate: new Date().toISOString(),
         endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days validity
@@ -206,7 +211,7 @@ export default function Dashboard({
 
       onAddTryout(newTryout);
       setShowCreateModal(false);
-      onToast(`Ujian Try Out "${title}" berhasil dijadwalkan dan dipublikasi!`, 'success');
+      onToast(`Ujian Try Out "${title}" (${tryoutSchoolLevel}) berhasil dijadwalkan dan dipublikasi!`, 'success');
     }
 
     // Reset Form
@@ -295,13 +300,36 @@ export default function Dashboard({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Active Tryouts */}
             <div className="lg:col-span-7 space-y-4">
-              <h3 className="font-bold text-sm text-slate-700 dark:text-slate-300 uppercase tracking-wider font-mono border-b border-slate-100 dark:border-slate-800 pb-2">
-                Daftar Ujian Try Out Tersedia
-              </h3>
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                <h3 className="font-bold text-sm text-slate-700 dark:text-slate-300 uppercase tracking-wider font-mono">
+                  Paket Try Out Tersedia
+                </h3>
+                {user.schoolLevel && (
+                  <span className="text-[10px] font-bold font-mono px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-100 dark:border-blue-900/30">
+                    Akses Level: {user.schoolLevel}
+                  </span>
+                )}
+              </div>
 
               <div id="tryouts-grid" className="space-y-4">
-                {tryouts.filter((t) => t.isPublished).length > 0 ? (
-                  tryouts.filter((t) => t.isPublished).map((t) => {
+                {(() => {
+                  const studentLevel = user.schoolLevel || 'SD';
+                  const visibleTryouts = tryouts.filter((t) => t.isPublished && t.schoolLevel === studentLevel);
+
+                  if (visibleTryouts.length === 0) {
+                    return (
+                      <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 text-slate-400 text-xs font-mono p-6">
+                        <p className="font-bold text-slate-600 dark:text-slate-300 text-sm mb-1">
+                          Belum ada Try Out untuk Jenjang {studentLevel}
+                        </p>
+                        <p className="text-[11px] text-slate-400">
+                          Anda saat ini berada pada akun tingkat <strong className="text-blue-600">{studentLevel}</strong>. Guru/Admin belum mempublikasikan paket ujian untuk jenjang ini.
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  return visibleTryouts.map((t) => {
                     const hasTaken = studentSubmissions.some((s) => s.tryoutId === t.id);
                     return (
                       <div
@@ -314,8 +342,8 @@ export default function Dashboard({
                               {t.category.toUpperCase()}
                             </span>
                             {t.schoolLevel && (
-                              <span className="px-2.5 py-0.5 text-[10px] font-bold rounded bg-pink-50 dark:bg-pink-950/40 text-pink-600 dark:text-pink-400 font-mono uppercase">
-                                {t.schoolLevel}
+                              <span className="px-2.5 py-0.5 text-[10px] font-bold rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 font-mono uppercase">
+                                Level {t.schoolLevel}
                               </span>
                             )}
                             <span className="text-xs text-slate-400 font-mono font-bold">KKM: {t.passingGrade}</span>
@@ -366,11 +394,7 @@ export default function Dashboard({
                       </div>
                     );
                   })
-                ) : (
-                  <div className="text-center py-12 bg-white rounded-3xl border text-slate-400 text-xs italic font-mono">
-                    Belum ada jadwal ujian Try Out terdaftar saat ini.
-                  </div>
-                )}
+                })()}
               </div>
             </div>
 
@@ -758,8 +782,8 @@ export default function Dashboard({
                 />
               </div>
 
-              {/* Duration, KKM & Category Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* Duration, KKM, Category & Level Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">Durasi (Menit)</label>
                   <input
@@ -769,7 +793,7 @@ export default function Dashboard({
                     max={180}
                     value={duration}
                     onChange={(e) => setDuration(Number(e.target.value))}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:border-blue-500 font-mono"
+                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:border-blue-500 font-mono"
                   />
                 </div>
                 <div>
@@ -781,7 +805,7 @@ export default function Dashboard({
                     max={100}
                     value={passingGrade}
                     onChange={(e) => setPassingGrade(Number(e.target.value))}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:border-blue-500 font-mono"
+                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:border-blue-500 font-mono"
                   />
                 </div>
                 <div>
@@ -789,14 +813,29 @@ export default function Dashboard({
                   <select
                     value={category}
                     onChange={(e) => handleCategoryChange(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:border-blue-500"
+                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:border-blue-500"
                   >
                     <option value="Matematika">Matematika</option>
-                    <option value="Fisika">Fisika</option>
-                    <option value="Biologi">Biologi</option>
-                    <option value="Kimia">Kimia</option>
+                    <option value="IPAS">IPAS (IPA & IPS SD)</option>
+                    <option value="IPA">IPA (Fisika, Kimia, Biologi)</option>
+                    <option value="IPS">IPS (Sejarah, Geografi, dll)</option>
                     <option value="Bahasa Indonesia">Bahasa Indonesia</option>
                     <option value="Bahasa Inggris">Bahasa Inggris</option>
+                    <option value="Fisika">Fisika</option>
+                    <option value="Kimia">Kimia</option>
+                    <option value="Biologi">Biologi</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">Jenjang Target</label>
+                  <select
+                    value={tryoutSchoolLevel}
+                    onChange={(e) => setTryoutSchoolLevel(e.target.value as any)}
+                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:border-blue-500 font-bold text-blue-600 dark:text-blue-400"
+                  >
+                    <option value="SD">Level SD</option>
+                    <option value="SMP">Level SMP</option>
+                    <option value="SMA">Level SMA</option>
                   </select>
                 </div>
               </div>

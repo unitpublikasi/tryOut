@@ -489,28 +489,19 @@ export default function TryoutManagement({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">Mata Pelajaran</label>
-                  <select
-                    value={category}
-                    onChange={(e) => handleCategoryChange(e.target.value)}
-                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:border-indigo-500 text-black font-semibold"
-                  >
-                    {subjects.map((sub) => (
-                      <option key={sub.id} value={sub.name}>
-                        {sub.name}
-                      </option>
-                    ))}
-                    {!subjects.some((s) => s.name === category) && category && (
-                      <option value={category}>{category}</option>
-                    )}
-                  </select>
-                </div>
-                <div>
                   <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">Tingkat Sekolah</label>
                   <select
                     value={schoolLevel}
-                    onChange={(e) => handleSchoolLevelChange(e.target.value)}
-                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:border-indigo-500 text-black font-semibold"
+                    onChange={(e) => {
+                      const newLvl = e.target.value;
+                      handleSchoolLevelChange(newLvl);
+                      // Auto select first subject matching level
+                      const matching = subjects.filter((s) => !s.levels || s.levels.length === 0 || s.levels.includes(newLvl));
+                      if (matching.length > 0) {
+                        handleCategoryChange(matching[0].name);
+                      }
+                    }}
+                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:border-indigo-500 text-black dark:text-white font-semibold"
                   >
                     {schoolLevels.map((lvl) => (
                       <option key={lvl.id} value={lvl.name}>
@@ -520,6 +511,25 @@ export default function TryoutManagement({
                     {!schoolLevels.some(sl => sl.name === 'SD') && <option value="SD">SD</option>}
                     {!schoolLevels.some(sl => sl.name === 'SMP') && <option value="SMP">SMP</option>}
                     {!schoolLevels.some(sl => sl.name === 'SMA') && <option value="SMA">SMA</option>}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">Mata Pelajaran</label>
+                  <select
+                    value={category}
+                    onChange={(e) => handleCategoryChange(e.target.value)}
+                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:border-indigo-500 text-black dark:text-white font-semibold"
+                  >
+                    {subjects
+                      .filter((sub) => !schoolLevel || !sub.levels || sub.levels.length === 0 || sub.levels.includes(schoolLevel))
+                      .map((sub) => (
+                        <option key={sub.id} value={sub.name}>
+                          {sub.name} {sub.levels?.includes('SMA') && sub.categoryType ? `(${sub.categoryType === 'pilihan' ? 'Pilihan' : 'Wajib'})` : ''}
+                        </option>
+                      ))}
+                    {!subjects.some((s) => s.name === category) && category && (
+                      <option value={category}>{category}</option>
+                    )}
                   </select>
                 </div>
               </div>

@@ -13,6 +13,7 @@ export interface User {
   avatar: string;
   email: string;
   schoolClass?: string; // Only for 'siswa'
+  schoolLevel?: 'SD' | 'SMP' | 'SMA' | string; // Level/Jenjang pendidikan user ('SD', 'SMP', 'SMA')
   schoolName: string;
   password?: string;
 }
@@ -83,6 +84,7 @@ export interface Subject {
   name: string;
   description: string;
   levels?: string[]; // e.g., ['SD', 'SMP', 'SMA']
+  categoryType?: 'wajib' | 'pilihan'; // Optional tag for SMA subject type ('wajib' vs 'pilihan')
 }
 
 export interface SchoolLevel {

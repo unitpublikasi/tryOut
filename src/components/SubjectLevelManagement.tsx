@@ -48,8 +48,9 @@ export default function SubjectLevelManagement({
 }: SubjectLevelManagementProps) {
   const [activeTab, setActiveTab] = useState<'subjects' | 'levels'>('subjects');
 
-  // Search filter
+  // Search & Level Filters
   const [searchTerm, setSearchTerm] = useState('');
+  const [levelFilter, setLevelFilter] = useState<'ALL' | 'SD' | 'SMP' | 'SMA_WAJIB' | 'SMA_PILIHAN'>('ALL');
 
   // Modals / Form states
   const [showSubjectModal, setShowSubjectModal] = useState(false);
@@ -60,6 +61,7 @@ export default function SubjectLevelManagement({
   const [subjectName, setSubjectName] = useState('');
   const [subjectDesc, setSubjectDesc] = useState('');
   const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
+  const [subjectCategoryType, setSubjectCategoryType] = useState<'wajib' | 'pilihan'>('wajib');
 
   // Level Form inputs
   const [editingLevel, setEditingLevel] = useState<SchoolLevel | null>(null);
@@ -72,6 +74,7 @@ export default function SubjectLevelManagement({
     setSubjectName('');
     setSubjectDesc('');
     setSelectedLevels([]);
+    setSubjectCategoryType('wajib');
     setShowSubjectModal(true);
   };
 
@@ -80,6 +83,7 @@ export default function SubjectLevelManagement({
     setSubjectName(s.name);
     setSubjectDesc(s.description);
     setSelectedLevels(s.levels || []);
+    setSubjectCategoryType(s.categoryType || 'wajib');
     setShowSubjectModal(true);
   };
 
@@ -96,6 +100,7 @@ export default function SubjectLevelManagement({
         name: subjectName.trim(),
         description: subjectDesc.trim(),
         levels: selectedLevels,
+        categoryType: subjectCategoryType,
       };
       onUpdateSubject(updated);
       onToast(`Mata Pelajaran "${subjectName}" berhasil diperbarui.`, 'success');
@@ -114,6 +119,7 @@ export default function SubjectLevelManagement({
         name: subjectName.trim(),
         description: subjectDesc.trim(),
         levels: selectedLevels,
+        categoryType: subjectCategoryType,
       };
       onAddSubject(newSub);
       onToast(`Mata Pelajaran "${subjectName}" berhasil ditambahkan.`, 'success');
@@ -226,7 +232,21 @@ export default function SubjectLevelManagement({
   const filteredSubjects = subjects.filter((s) => {
     const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           s.description.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
+    if (!matchesSearch) return false;
+
+    if (levelFilter === 'SD') {
+      return s.levels?.includes('SD');
+    }
+    if (levelFilter === 'SMP') {
+      return s.levels?.includes('SMP');
+    }
+    if (levelFilter === 'SMA_WAJIB') {
+      return s.levels?.includes('SMA') && (s.categoryType === 'wajib' || !s.categoryType);
+    }
+    if (levelFilter === 'SMA_PILIHAN') {
+      return s.levels?.includes('SMA') && s.categoryType === 'pilihan';
+    }
+    return true;
   });
 
   const filteredLevels = schoolLevels.filter((l) => {
@@ -270,6 +290,64 @@ export default function SubjectLevelManagement({
               <span>Tambah Tingkat Sekolah</span>
             </button>
           )}
+        </div>
+      </div>
+
+      {/* Curriculum Summary Banner */}
+      <div className="p-5 bg-gradient-to-r from-blue-900/10 via-indigo-900/10 to-purple-900/10 dark:from-blue-950/40 dark:via-indigo-950/40 dark:to-purple-950/40 border border-blue-200/80 dark:border-blue-800/50 rounded-3xl space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5 text-blue-700 dark:text-blue-300 font-extrabold text-sm">
+            <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
+            <span>Struktur Kurikulum Sesuai Jenjang Pendidikan</span>
+          </div>
+          <span className="text-[10px] font-mono px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200 font-bold">
+            Kurikulum Nasional 2026/2027
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+          {/* SD */}
+          <div className="p-3.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur rounded-2xl border border-slate-200/60 dark:border-slate-800">
+            <div className="flex items-center gap-2 mb-2 text-xs font-bold text-amber-600 dark:text-amber-400">
+              <span className="px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-mono font-bold">1. Tingkat SD</span>
+            </div>
+            <ul className="text-xs text-slate-600 dark:text-slate-300 space-y-1 list-disc list-inside">
+              <li>Bahasa Indonesia</li>
+              <li>Matematika</li>
+              <li>IPAS (Ilmu Pengetahuan Alam dan Sosial)</li>
+            </ul>
+          </div>
+
+          {/* SMP */}
+          <div className="p-3.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur rounded-2xl border border-slate-200/60 dark:border-slate-800">
+            <div className="flex items-center gap-2 mb-2 text-xs font-bold text-indigo-600 dark:text-indigo-400">
+              <span className="px-2 py-0.5 rounded bg-indigo-100 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 font-mono font-bold">2. Tingkat SMP</span>
+            </div>
+            <ul className="text-xs text-slate-600 dark:text-slate-300 space-y-1 list-disc list-inside">
+              <li>Bahasa Indonesia</li>
+              <li>Matematika</li>
+              <li>Bahasa Inggris</li>
+              <li>IPA (Fisika, Kimia, Biologi)</li>
+              <li>IPS (Sejarah, Geografi, Ekonomi, Sosiologi)</li>
+            </ul>
+          </div>
+
+          {/* SMA */}
+          <div className="p-3.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur rounded-2xl border border-slate-200/60 dark:border-slate-800">
+            <div className="flex items-center gap-2 mb-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+              <span className="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-mono font-bold">3. Tingkat SMA</span>
+            </div>
+            <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
+              <div>
+                <strong className="text-slate-800 dark:text-slate-200 block text-[11px] font-bold">Wajib:</strong>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">B. Indonesia, Matematika, B. Inggris, Pendidikan Pancasila, Agama, Sejarah.</span>
+              </div>
+              <div>
+                <strong className="text-slate-800 dark:text-slate-200 block text-[11px] font-bold">Pilihan (Jurusan / Kelompok):</strong>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">Fisika, Kimia, Biologi, Ekonomi, Sosiologi, Geografi.</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -323,6 +401,68 @@ export default function SubjectLevelManagement({
         </div>
       </div>
 
+      {/* Level Filter Pills for Subjects Tab */}
+      {activeTab === 'subjects' && (
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <span className="text-xs font-bold text-slate-400 dark:text-slate-500 mr-1">Filter Level:</span>
+          <button
+            type="button"
+            onClick={() => setLevelFilter('ALL')}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              levelFilter === 'ALL'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100'
+            }`}
+          >
+            Semua ({subjects.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setLevelFilter('SD')}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              levelFilter === 'SD'
+                ? 'bg-amber-600 text-white shadow-md shadow-amber-500/20'
+                : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100'
+            }`}
+          >
+            SD (3)
+          </button>
+          <button
+            type="button"
+            onClick={() => setLevelFilter('SMP')}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              levelFilter === 'SMP'
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
+                : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100'
+            }`}
+          >
+            SMP (5)
+          </button>
+          <button
+            type="button"
+            onClick={() => setLevelFilter('SMA_WAJIB')}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              levelFilter === 'SMA_WAJIB'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20'
+                : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100'
+            }`}
+          >
+            SMA Wajib (6)
+          </button>
+          <button
+            type="button"
+            onClick={() => setLevelFilter('SMA_PILIHAN')}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              levelFilter === 'SMA_PILIHAN'
+                ? 'bg-purple-600 text-white shadow-md shadow-purple-500/20'
+                : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100'
+            }`}
+          >
+            SMA Pilihan (6)
+          </button>
+        </div>
+      )}
+
       {/* RENDER GRID CARDS */}
       {activeTab === 'subjects' ? (
         <div id="subjects-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -334,7 +474,7 @@ export default function SubjectLevelManagement({
               >
                 <div>
                   <div className="flex items-start justify-between gap-2.5 mb-3">
-                    <div className="p-3 bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                    <div className="p-3 bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 rounded-2xl group-hover:scale-110 transition-transform duration-300 flex items-center gap-2">
                       <BookMarked className="w-5 h-5" />
                     </div>
                     
@@ -357,9 +497,21 @@ export default function SubjectLevelManagement({
                     </div>
                   </div>
 
-                  <h3 className="text-base font-bold text-slate-800 dark:text-white leading-tight mb-2.5 select-all">
-                    {sub.name}
-                  </h3>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <h3 className="text-base font-bold text-slate-800 dark:text-white leading-tight select-all">
+                      {sub.name}
+                    </h3>
+                    {sub.levels?.includes('SMA') && (
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
+                        sub.categoryType === 'pilihan'
+                          ? 'bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800'
+                          : 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                      }`}>
+                        {sub.categoryType === 'pilihan' ? 'Pilihan' : 'Wajib'}
+                      </span>
+                    )}
+                  </div>
+
                   <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed mb-4 line-clamp-2 select-all">
                     {sub.description || 'Tidak ada deskripsi tambahan untuk mata pelajaran ini.'}
                   </p>
@@ -526,6 +678,39 @@ export default function SubjectLevelManagement({
                       </button>
                     );
                   })}
+                </div>
+              </div>
+
+              {/* Category Type (Wajib / Pilihan for SMA) */}
+              <div>
+                <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">
+                  Kategori / Kelompok Mata Pelajaran (Khusus SMA)
+                </label>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setSubjectCategoryType('wajib')}
+                    className={`py-2.5 px-4 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
+                      subjectCategoryType === 'wajib'
+                        ? 'bg-emerald-50 border-emerald-500 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400'
+                        : 'bg-slate-50 border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-500 hover:bg-slate-100'
+                    }`}
+                  >
+                    {subjectCategoryType === 'wajib' && <Check className="w-3.5 h-3.5" />}
+                    <span>Mata Pelajaran Wajib</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSubjectCategoryType('pilihan')}
+                    className={`py-2.5 px-4 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
+                      subjectCategoryType === 'pilihan'
+                        ? 'bg-purple-50 border-purple-500 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400'
+                        : 'bg-slate-50 border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-500 hover:bg-slate-100'
+                    }`}
+                  >
+                    {subjectCategoryType === 'pilihan' && <Check className="w-3.5 h-3.5" />}
+                    <span>Mata Pelajaran Pilihan</span>
+                  </button>
                 </div>
               </div>
 

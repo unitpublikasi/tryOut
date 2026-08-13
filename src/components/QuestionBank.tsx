@@ -850,17 +850,44 @@ export default function QuestionBank({
               {/* Category, Difficulty & School Level Selection */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
+                  <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">Tingkat Sekolah</label>
+                  <select
+                    value={newSchoolLevel}
+                    onChange={(e) => {
+                      const selectedLvl = e.target.value;
+                      setNewSchoolLevel(selectedLvl);
+                      // Auto-update default category to first subject matching the level
+                      const matchingSubs = subjects.filter((s) => !s.levels || s.levels.length === 0 || s.levels.includes(selectedLvl));
+                      if (matchingSubs.length > 0) {
+                        setNewCategory(matchingSubs[0].name);
+                      }
+                    }}
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:border-blue-500"
+                  >
+                    {schoolLevels.map((lvl) => (
+                      <option key={lvl.id} value={lvl.name}>
+                        {lvl.name}
+                      </option>
+                    ))}
+                    {!schoolLevels.some(sl => sl.name === 'SD') && <option value="SD">SD</option>}
+                    {!schoolLevels.some(sl => sl.name === 'SMP') && <option value="SMP">SMP</option>}
+                    {!schoolLevels.some(sl => sl.name === 'SMA') && <option value="SMA">SMA</option>}
+                  </select>
+                </div>
+                <div>
                   <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">Mata Pelajaran (Kategori)</label>
                   <select
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:border-blue-500"
                   >
-                    {subjects.map((sub) => (
-                      <option key={sub.id} value={sub.name}>
-                        {sub.name}
-                      </option>
-                    ))}
+                    {subjects
+                      .filter((sub) => !newSchoolLevel || !sub.levels || sub.levels.length === 0 || sub.levels.includes(newSchoolLevel))
+                      .map((sub) => (
+                        <option key={sub.id} value={sub.name}>
+                          {sub.name} {sub.levels?.includes('SMA') && sub.categoryType ? `(${sub.categoryType === 'pilihan' ? 'Pilihan' : 'Wajib'})` : ''}
+                        </option>
+                      ))}
                     {!subjects.some((s) => s.name === newCategory) && newCategory && (
                       <option value={newCategory}>{newCategory}</option>
                     )}
@@ -876,23 +903,6 @@ export default function QuestionBank({
                     <option value="easy">Mudah</option>
                     <option value="medium">Sedang</option>
                     <option value="hard">Sukar</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-2">Tingkat Sekolah</label>
-                  <select
-                    value={newSchoolLevel}
-                    onChange={(e) => setNewSchoolLevel(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:border-blue-500"
-                  >
-                    {schoolLevels.map((lvl) => (
-                      <option key={lvl.id} value={lvl.name}>
-                        {lvl.name}
-                      </option>
-                    ))}
-                    {!schoolLevels.some(sl => sl.name === 'SD') && <option value="SD">SD</option>}
-                    {!schoolLevels.some(sl => sl.name === 'SMP') && <option value="SMP">SMP</option>}
-                    {!schoolLevels.some(sl => sl.name === 'SMA') && <option value="SMA">SMA</option>}
                   </select>
                 </div>
               </div>
