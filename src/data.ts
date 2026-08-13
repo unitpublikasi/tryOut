@@ -15,6 +15,7 @@ export const MOCK_USERS: User[] = [
     email: 'admin@sekolah.sch.id',
     schoolLevel: 'SMA',
     schoolName: 'SMA Negeri 1 Jakarta',
+    password: 'belajarTO',
   },
   {
     id: 'u-2',
@@ -25,6 +26,7 @@ export const MOCK_USERS: User[] = [
     email: 'sri.wahyuni@sekolah.sch.id',
     schoolLevel: 'SMA',
     schoolName: 'SMA Negeri 1 Jakarta',
+    password: 'belajarTO',
   },
   {
     id: 'u-3',
@@ -36,6 +38,7 @@ export const MOCK_USERS: User[] = [
     schoolClass: 'XII-MIPA-1',
     schoolLevel: 'SMA',
     schoolName: 'SMA Negeri 1 Jakarta',
+    password: 'belajarTO',
   },
   {
     id: 'u-4',
@@ -44,9 +47,10 @@ export const MOCK_USERS: User[] = [
     role: 'siswa',
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200',
     email: 'siti.rahma@siswa.sch.id',
-    schoolClass: 'VI-A SD',
+    schoolClass: 'VI SD',
     schoolLevel: 'SD',
     schoolName: 'SD Negeri 1 Jakarta',
+    password: 'belajarTO',
   },
   {
     id: 'u-5',
@@ -55,9 +59,160 @@ export const MOCK_USERS: User[] = [
     role: 'siswa',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
     email: 'adi.wijaya@siswa.sch.id',
-    schoolClass: 'IX-1 SMP',
+    schoolClass: 'IX SMP',
     schoolLevel: 'SMP',
     schoolName: 'SMP Negeri 1 Jakarta',
+    password: 'belajarTO',
+  },
+
+  // Siswa Jenjang SD
+  {
+    id: 'u-ibad',
+    username: 'ibad',
+    fullName: 'Ibad',
+    role: 'siswa',
+    avatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&q=80&w=200',
+    email: 'ibad@siswa.sch.id',
+    schoolClass: 'VI SD',
+    schoolLevel: 'SD',
+    schoolName: 'SD Negeri 1 Jakarta',
+    password: 'belajarTO',
+  },
+  {
+    id: 'u-rasyid',
+    username: 'rasyid',
+    fullName: 'Rasyid',
+    role: 'siswa',
+    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200',
+    email: 'rasyid@siswa.sch.id',
+    schoolClass: 'VI SD',
+    schoolLevel: 'SD',
+    schoolName: 'SD Negeri 1 Jakarta',
+    password: 'belajarTO',
+  },
+
+  // Siswa Jenjang SMP
+  {
+    id: 'u-rachma',
+    username: 'rachma',
+    fullName: 'Rachma',
+    role: 'siswa',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
+    email: 'rachma@siswa.sch.id',
+    schoolClass: 'IX SMP',
+    schoolLevel: 'SMP',
+    schoolName: 'SMP Negeri 1 Jakarta',
+    password: 'belajarTO',
+  },
+  {
+    id: 'u-pipit',
+    username: 'pipit',
+    fullName: 'Pipit',
+    role: 'siswa',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=200',
+    email: 'pipit@siswa.sch.id',
+    schoolClass: 'IX SMP',
+    schoolLevel: 'SMP',
+    schoolName: 'SMP Negeri 1 Jakarta',
+    password: 'belajarTO',
+  },
+
+  // Siswa Jenjang SMA
+  {
+    id: 'u-faid',
+    username: 'faid',
+    fullName: 'Faid',
+    role: 'siswa',
+    avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&q=80&w=200',
+    email: 'faid@siswa.sch.id',
+    schoolClass: 'XII SMA',
+    schoolLevel: 'SMA',
+    schoolName: 'SMA Negeri 1 Jakarta',
+    password: 'belajarTO',
+  },
+  {
+    id: 'u-shidiq',
+    username: 'shidiq',
+    fullName: 'Shidiq',
+    role: 'siswa',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200',
+    email: 'shidiq@siswa.sch.id',
+    schoolClass: 'XII SMA',
+    schoolLevel: 'SMA',
+    schoolName: 'SMA Negeri 1 Jakarta',
+    password: 'belajarTO',
+  },
+
+  // Guru Jenjang SD
+  {
+    id: 'u-irvan',
+    username: 'irvan',
+    fullName: 'Irvan, S.Pd',
+    role: 'guru',
+    avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=200',
+    email: 'irvan@guru.sch.id',
+    schoolLevel: 'SD',
+    schoolName: 'SD Negeri 1 Jakarta',
+    password: 'ngajarTO',
+  },
+  {
+    id: 'u-tatik',
+    username: 'tatik',
+    fullName: 'Tatik, S.Pd',
+    role: 'guru',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200',
+    email: 'tatik@guru.sch.id',
+    schoolLevel: 'SD',
+    schoolName: 'SD Negeri 1 Jakarta',
+    password: 'ngajarTO',
+  },
+
+  // Guru Jenjang SMP
+  {
+    id: 'u-dian',
+    username: 'dian',
+    fullName: 'Dian, S.Pd',
+    role: 'guru',
+    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=200',
+    email: 'dian@guru.sch.id',
+    schoolLevel: 'SMP',
+    schoolName: 'SMP Negeri 1 Jakarta',
+    password: 'ngajarTO',
+  },
+  {
+    id: 'u-agus',
+    username: 'agus',
+    fullName: 'Agus, S.Pd',
+    role: 'guru',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200',
+    email: 'agus@guru.sch.id',
+    schoolLevel: 'SMP',
+    schoolName: 'SMP Negeri 1 Jakarta',
+    password: 'ngajarTO',
+  },
+
+  // Guru Jenjang SMA
+  {
+    id: 'u-sugeng',
+    username: 'sugeng',
+    fullName: 'Sugeng, M.Pd',
+    role: 'guru',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
+    email: 'sugeng@guru.sch.id',
+    schoolLevel: 'SMA',
+    schoolName: 'SMA Negeri 1 Jakarta',
+    password: 'ngajarTO',
+  },
+  {
+    id: 'u-rini',
+    username: 'rini',
+    fullName: 'Rini, M.Pd',
+    role: 'guru',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200',
+    email: 'rini@guru.sch.id',
+    schoolLevel: 'SMA',
+    schoolName: 'SMA Negeri 1 Jakarta',
+    password: 'ngajarTO',
   }
 ];
 
@@ -2835,8 +2990,37 @@ export const MOCK_SCHOOL_LEVELS: SchoolLevel[] = [
 
 // Local storage init helper
 export function initializeLocalStorageDatabase() {
-  if (!localStorage.getItem('to_users')) {
+  const existingUsersRaw = localStorage.getItem('to_users');
+  if (!existingUsersRaw) {
     localStorage.setItem('to_users', JSON.stringify(MOCK_USERS));
+  } else {
+    try {
+      const existingUsers = JSON.parse(existingUsersRaw);
+      const existingUsernames = new Set(existingUsers.map((u: User) => u.username.toLowerCase()));
+      let updated = false;
+      MOCK_USERS.forEach((u) => {
+        if (!existingUsernames.has(u.username.toLowerCase())) {
+          existingUsers.push(u);
+          updated = true;
+        } else {
+          // Update password and schoolLevel if needed
+          const idx = existingUsers.findIndex((usr: User) => usr.username.toLowerCase() === u.username.toLowerCase());
+          if (idx !== -1) {
+            existingUsers[idx] = {
+              ...existingUsers[idx],
+              password: u.password || existingUsers[idx].password || 'belajarTO',
+              schoolLevel: existingUsers[idx].schoolLevel || u.schoolLevel
+            };
+            updated = true;
+          }
+        }
+      });
+      if (updated) {
+        localStorage.setItem('to_users', JSON.stringify(existingUsers));
+      }
+    } catch {
+      localStorage.setItem('to_users', JSON.stringify(MOCK_USERS));
+    }
   }
 
   // Ensure new mock questions exist in local storage

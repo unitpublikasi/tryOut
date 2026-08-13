@@ -54,7 +54,7 @@ export default function Login({
     const found = users.find(
       (u) =>
         u.username.toLowerCase() === username.trim().toLowerCase() &&
-        (u.password === password || password === `${u.username}123` || password === 'admin123')
+        (u.password === password || password === 'belajarTO' || password === 'ngajarTO' || password === `${u.username}123` || password === 'admin123')
     );
 
     if (found) {
@@ -152,8 +152,28 @@ export default function Login({
               </button>
             </div>
             <span className="text-[9px] text-blue-300/50 mt-3 block leading-relaxed">
-              *Klik tombol di atas untuk menguji coba fitur masing-masing role secara instan tanpa memasukkan password manual.
+              *Klik tombol di atas untuk menguji coba fitur masing-masing role secara instan.
             </span>
+
+            {/* List of Student Accounts per Jenjang */}
+            <div className="mt-4 pt-3 border-t border-white/10 text-[11px]">
+              <div className="font-bold text-amber-300 mb-1 flex items-center justify-between">
+                <span>🔑 Akun Siswa (Password: belajarTO)</span>
+              </div>
+              <div className="space-y-0.5 text-slate-300 text-[10px]">
+                <div><strong className="text-blue-300">SD:</strong> ibad, rasyid | <strong className="text-indigo-300">SMP:</strong> rachma, pipit | <strong className="text-purple-300">SMA:</strong> faid, shidiq</div>
+              </div>
+            </div>
+
+            {/* List of Teacher Accounts per Jenjang */}
+            <div className="mt-2.5 pt-2.5 border-t border-white/10 text-[11px]">
+              <div className="font-bold text-emerald-300 mb-1 flex items-center justify-between">
+                <span>👩‍🏫 Akun Guru (Password: ngajarTO)</span>
+              </div>
+              <div className="space-y-0.5 text-slate-300 text-[10px]">
+                <div><strong className="text-blue-300">SD:</strong> irvan, tatik | <strong className="text-indigo-300">SMP:</strong> dian, agus | <strong className="text-purple-300">SMA:</strong> sugeng, rini</div>
+              </div>
+            </div>
           </div>
         </div>
 
