@@ -134,6 +134,13 @@ export default function App() {
     triggerToast('Butir soal baru berhasil dimasukkan ke Bank Soal!', 'success');
   };
 
+  const handleUpdateQuestion = (updatedQuestion: Question) => {
+    const updated = questions.map((q) => (q.id === updatedQuestion.id ? updatedQuestion : q));
+    setQuestions(updated);
+    saveToLocalStorage('to_questions', updated);
+    triggerToast('Butir soal berhasil diperbarui!', 'success');
+  };
+
   const handleAddQuestionsBulk = (newQuestions: Question[]) => {
     const updated = [...newQuestions, ...questions];
     setQuestions(updated);
@@ -477,6 +484,7 @@ export default function App() {
                     subjects={subjects}
                     schoolLevels={schoolLevels}
                     onAddQuestion={handleAddQuestion}
+                    onUpdateQuestion={handleUpdateQuestion}
                     onAddQuestionsBulk={handleAddQuestionsBulk}
                     onDeleteQuestion={handleDeleteQuestion}
                     onDeleteQuestionsBulk={handleDeleteQuestionsBulk}

@@ -38,7 +38,7 @@ export default function ExamPlayer({
   onCancel,
 }: ExamPlayerProps) {
   const [currentIdx, setCurrentIdx] = useState<number>(0);
-  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [answers, setAnswers] = useState<Record<string, any>>({});
   const [flagged, setFlagged] = useState<string[]>([]);
   const [timeLeft, setTimeLeft] = useState<number>(tryout.durationMinutes * 60);
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
@@ -80,6 +80,24 @@ export default function ExamPlayer({
     }));
   };
 
+  const handleToggleMultipleSelectOption = (questionId: string, optionIdx: number) => {
+    setAnswers((prev) => {
+      const current = Array.isArray(prev[questionId]) ? [...prev[questionId]] : [];
+      if (current.includes(optionIdx)) {
+        const updated = current.filter((i) => i !== optionIdx);
+        if (updated.length === 0) {
+          const copy = { ...prev };
+          delete copy[questionId];
+          return copy;
+        }
+        return { ...prev, [questionId]: updated };
+      } else {
+        const updated = [...current, optionIdx].sort((a, b) => a - b);
+        return { ...prev, [questionId]: updated };
+      }
+    });
+  };
+
   const handleToggleFlag = (questionId: string) => {
     setFlagged((prev) =>
       prev.includes(questionId)
@@ -111,6 +129,17 @@ export default function ExamPlayer({
         if (Array.isArray(selected) && selected.length === q.matrixCorrectAnswers.length && !selected.includes(-1)) {
           const isAllCorrect = q.matrixCorrectAnswers.every((correctAns, rIdx) => selected[rIdx] === correctAns);
           if (isAllCorrect) correct++;
+          else wrong++;
+        } else {
+          unanswered++;
+        }
+      } else if (q.type === 'multiple_select' && q.multipleCorrectAnswers) {
+        if (Array.isArray(selected) && selected.length > 0) {
+          const sortedSelected = [...selected].sort((a, b) => a - b);
+          const sortedCorrect = [...q.multipleCorrectAnswers].sort((a, b) => a - b);
+          const isAllMatch = sortedSelected.length === sortedCorrect.length &&
+            sortedSelected.every((val, i) => val === sortedCorrect[i]);
+          if (isAllMatch) correct++;
           else wrong++;
         } else {
           unanswered++;
@@ -272,6 +301,40 @@ export default function ExamPlayer({
                   })}
                 </tbody>
               </table>
+            </div>
+          ) : currentQuestion.type === 'multiple_select' ? (
+            <div id="options-grid" className="space-y-4">
+              <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-900/40 text-amber-800 dark:text-amber-300 text-xs font-semibold mb-2 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0" />
+                <span>Soal Pilihan Ganda Kompleks: Anda dapat memilih lebih dari satu opsi jawaban yang menurut Anda benar.</span>
+              </div>
+              {currentQuestion.options.map((option, oIdx) => {
+                const optionLetter = String.fromCharCode(65 + oIdx);
+                const selectedList = Array.isArray(answers[currentQuestion.id]) ? answers[currentQuestion.id] : [];
+                const isSelected = selectedList.includes(oIdx);
+
+                return (
+                  <button
+                    key={oIdx}
+                    id={`option-button-${currentQuestion.id}-${oIdx}`}
+                    onClick={() => handleToggleMultipleSelectOption(currentQuestion.id, oIdx)}
+                    className={`w-full flex items-start gap-4 p-5 rounded-2xl border text-left transition-all duration-200 active:scale-[0.99] group ${
+                      isSelected
+                        ? 'bg-amber-50/75 dark:bg-amber-950/25 border-amber-500 text-amber-900 dark:text-amber-100 shadow-md shadow-amber-500/5'
+                        : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-700 dark:text-slate-300'
+                    }`}
+                  >
+                    <span className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 transition-all ${
+                      isSelected
+                        ? 'bg-amber-500 text-white shadow-md'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 group-hover:text-slate-700'
+                    }`}>
+                      {isSelected ? `✓ ${optionLetter}` : optionLetter}
+                    </span>
+                    <span className="pt-1.5 text-sm md:text-base font-medium"><MathRenderer text={option} /></span>
+                  </button>
+                );
+              })}
             </div>
           ) : (
             <div id="options-grid" className="space-y-4">

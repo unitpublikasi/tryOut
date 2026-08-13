@@ -125,6 +125,13 @@ export default function ResultView({ submission, tryout, onClose }: ResultViewPr
               if (Array.isArray(studentAns) && studentAns.length === q.matrixCorrectAnswers.length) {
                 isCorrect = q.matrixCorrectAnswers.every((correctAns, rIdx) => studentAns[rIdx] === correctAns);
               }
+            } else if (q.type === 'multiple_select' && q.multipleCorrectAnswers) {
+              if (Array.isArray(studentAns) && studentAns.length > 0) {
+                const sortedSelected = [...studentAns].sort((a, b) => a - b);
+                const sortedCorrect = [...q.multipleCorrectAnswers].sort((a, b) => a - b);
+                isCorrect = sortedSelected.length === sortedCorrect.length &&
+                  sortedSelected.every((val, i) => val === sortedCorrect[i]);
+              }
             } else {
               isCorrect = studentAns === q.correctAnswer;
             }
@@ -225,8 +232,13 @@ export default function ResultView({ submission, tryout, onClose }: ResultViewPr
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                     {q.options.map((opt, oIdx) => {
-                      const isKeyCorrect = q.correctAnswer === oIdx;
-                      const isStudentSelected = studentAns === oIdx;
+                      const correctKeys = q.type === 'multiple_select'
+                        ? (q.multipleCorrectAnswers || [q.correctAnswer])
+                        : [q.correctAnswer];
+                      const isKeyCorrect = correctKeys.includes(oIdx);
+                      const isStudentSelected = q.type === 'multiple_select'
+                        ? (Array.isArray(studentAns) && studentAns.includes(oIdx))
+                        : studentAns === oIdx;
 
                       let cardStyle = 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/30';
                       let badgeStyle = 'bg-slate-200 text-slate-600 dark:bg-slate-700';
@@ -234,7 +246,7 @@ export default function ResultView({ submission, tryout, onClose }: ResultViewPr
                       if (isKeyCorrect) {
                         cardStyle = 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-300';
                         badgeStyle = 'bg-emerald-500 text-white';
-                      } else if (isStudentSelected && !isCorrect) {
+                      } else if (isStudentSelected) {
                         cardStyle = 'border-red-400 bg-red-50/50 dark:bg-red-950/20 text-red-900 dark:text-red-300';
                         badgeStyle = 'bg-red-500 text-white';
                       }
